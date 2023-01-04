@@ -28,7 +28,7 @@ public class SwaggerConfig implements WebMvcConfigurer {
         return new Docket(DocumentationType.SWAGGER_2)
                 .select()
                 .apis(RequestHandlerSelectors.any())
-                .paths(postPaths())
+                .paths(PathSelectors.any())
                 .build()
                 .apiInfo(apiDetails());
     }
@@ -42,7 +42,7 @@ public class SwaggerConfig implements WebMvcConfigurer {
                 "Backend for the vacation planner app",
                 "0.0.1",
                 "Free to use",
-                new Contact("PH", "http://google.com", ""),
+                new Contact("PH", "https://github.com/ph624723/vacation-planner-v2-be", ""),
                 "",
                 "",
                 Collections.emptyList()

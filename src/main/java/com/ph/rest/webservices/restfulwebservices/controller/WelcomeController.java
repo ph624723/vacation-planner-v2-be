@@ -1,15 +1,15 @@
 package com.ph.rest.webservices.restfulwebservices.controller;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 //@RequestMapping("/test")
 public class WelcomeController {
 
-    @RequestMapping("/")
+    @ApiOperation(value = "Basic redirect to bring new users to the Swagger doc")
+    @GetMapping("/")
     public String welcome(){
         //return new ResponseEntity<String>("Nothing to see here. Go to /swagger-ui.html for documentation of available endpoints.", HttpStatus.OK);
         return "redirect:/swagger-ui.html";
