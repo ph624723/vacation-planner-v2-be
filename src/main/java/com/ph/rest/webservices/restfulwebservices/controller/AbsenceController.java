@@ -1,9 +1,13 @@
 package com.ph.rest.webservices.restfulwebservices.controller;
 
+import com.ph.model.PersonNotFoundException;
 import com.ph.model.TimeSpan;
-import com.ph.rest.webservices.restfulwebservices.model.Absence;
-import com.ph.rest.webservices.restfulwebservices.repository.AbsenceJpaRepository;
-import com.ph.rest.webservices.restfulwebservices.repository.UserJpaRepository;
+import com.ph.persistence.model.AbsenceEntity;
+import com.ph.persistence.model.PersonEntity;
+import com.ph.persistence.repository.AbsenceJpaRepository;
+import com.ph.persistence.repository.PersonJpaRepository;
+import com.ph.rest.webservices.restfulwebservices.model.*;
+import com.ph.service.AuthService;
 import com.ph.service.FreeTimeService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -12,46 +16,75 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.net.URI;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/absences")
 public class AbsenceController implements IController<Absence,Long> {
-
-	private final String dateFormat = "yyyy-mm-dd";
 	
 	@Autowired
 	private AbsenceJpaRepository repository;
 	@Autowired
-	private UserJpaRepository userRepository;
+	private PersonJpaRepository personRepository;
 
 	@ApiOperation(value = "Gets all stored absences")
-	public List<Absence> getAll(){
-		return repository.findAll();
+	public ResponseEntity<AbsenceListResponse> getAll(
+			@ApiParam(value = "Bearer token for authentification", required = true)
+			@RequestHeader("Authorization")
+			String authKey){
+		if(!AuthService.isTokenValid(authKey)){
+			AbsenceListResponse response = new AbsenceListResponse();
+			response.setMessage("Authorization key is invalid");
+			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
+			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+		}
+
+		List<Absence> results = repository.findAll().stream().map(x -> Absence.fromEntity(x)).collect(Collectors.toList());
+		AbsenceListResponse response = new AbsenceListResponse();
+		response.setRespondeCode(RepsonseCode.OK);
+		response.setList(results);
+		return new ResponseEntity<>(response,HttpStatus.OK);
 	}
 
-	@ApiOperation(value = "Gets all stored absences for the specified user")
-	@GetMapping("/user/{username}")
-	public List<Absence> getByUser(
+	@ApiOperation(value = "Gets all stored absences for the specified person")
+	@GetMapping("/person/{personId}")
+	public ResponseEntity<AbsenceListResponse> getByUser(
 			@ApiParam(value = "The user to get absences for", required = true)
 			@PathVariable
-			String username){
-		if(userRepository.existsById(username)){
-			return repository.findByUser(userRepository.findById(username).get());
+			Long personId,
+			@ApiParam(value = "Bearer token for authentification", required = true)
+			@RequestHeader("Authorization")
+			String authKey){
+		if(!AuthService.isTokenValid(authKey)){
+			AbsenceListResponse response = new AbsenceListResponse();
+			response.setMessage("Authorization key is invalid");
+			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
+			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+		}
+
+		if(personRepository.existsById(personId)){
+			List<Absence> results = repository.findByPerson(personRepository.findById(personId).get()).stream().map(x -> Absence.fromEntity(x)).collect(Collectors.toList());
+			AbsenceListResponse response = new AbsenceListResponse();
+			response.setRespondeCode(RepsonseCode.OK);
+			response.setList(results);
+			return new ResponseEntity<>(response,HttpStatus.OK);
 		}else{
-			return null;
+			AbsenceListResponse response = new AbsenceListResponse();
+			response.setRespondeCode(RepsonseCode.UNKNOWN_ID);
+			response.setList(null);
+			response.setMessage(new PersonNotFoundException(personId).getMessage());
+			return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
 		}
 	}
 
-	@ApiOperation(value="Gets time-slots without absences",
-					notes = "Gets time-slots without absences inside the specified time-frame. Optionally an importance level can be specified up to which absences are to be ignored.")
-	@GetMapping("/free")
-	public List<TimeSpan> findFreeTimes(
+	@ApiOperation(value="Gets time-slots without absences for a single person",
+			notes = "Gets time-slots without absences inside the specified time-frame. Optionally an importance level can be specified up to which absences are to be ignored.")
+	@GetMapping("/person/{personId}/free")
+	public ResponseEntity<TimeSpanListResponse> findFreeTimesByUser(
 			@ApiParam(value = "The inclusive start-date of the desired time-frame in ISO format", required = true)
 			@RequestHeader("start")
 			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -62,67 +95,204 @@ public class AbsenceController implements IController<Absence,Long> {
 			Date endDate,
 			@ApiParam(value = "The importance level up to which (inclusive) absences are to be ignored", required = false)
 			@RequestParam(required = false)
-			Integer upToLevel){
+			Integer upToLevel,
+			@ApiParam(value = "The user to get absences for", required = true)
+			@PathVariable
+			Long personId,
+			@ApiParam(value = "Bearer token for authentication", required = true)
+			@RequestHeader("Authorization")
+			String authKey){
+		if(!AuthService.isTokenValid(authKey)){
+			TimeSpanListResponse response = new TimeSpanListResponse();
+			response.setMessage("Authorization key is invalid");
+			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
+			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+		}
 
-		List<Absence> absences = repository.findAll();
+		Optional<PersonEntity> person = personRepository.findById(personId);
+		if(!person.isPresent()) {
+			TimeSpanListResponse response = new TimeSpanListResponse();
+			response.setRespondeCode(RepsonseCode.UNKNOWN_ID);
+			response.setList(null);
+			response.setMessage(new PersonNotFoundException(personId).getMessage());
+			return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
+		}
+
+		TimeSpanListResponse response = new TimeSpanListResponse();
+		List<AbsenceEntity> absences = repository.findByPerson(person.get());
 		if(upToLevel != null){
 			absences = absences.stream()
 					.filter(absence -> absence.getLevel() > upToLevel)
 					.collect(Collectors.toList());
+			response.setMessage(absences.size()+" relevant absences with importance level > "+upToLevel);
 		}
 
-		return FreeTimeService.findFreeTimes(
+		List<TimeSpan> freeTimes = FreeTimeService.findFreeTimes(
 				new TimeSpan(startDate,endDate),
 				absences);
+
+
+		response.setRespondeCode(RepsonseCode.OK);
+		response.setList(freeTimes);
+		return new ResponseEntity<>(response,HttpStatus.OK);
 	}
 
-	@ApiOperation(value = "Get a single absence by ID",
-					notes = "Will return null if ID does not exist.")
-	public Absence get(
+	@ApiOperation(value="Gets time-slots without absences",
+					notes = "Gets time-slots without absences inside the specified time-frame. Optionally an importance level can be specified up to which absences are to be ignored.")
+	@GetMapping("/free")
+	public ResponseEntity<TimeSpanListResponse> findFreeTimes(
+			@ApiParam(value = "The inclusive start-date of the desired time-frame in ISO format", required = true)
+			@RequestHeader("start")
+			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+			Date startDate,
+			@ApiParam(value = "The inclusive end-date of the desired time-frame in ISO format", required = true)
+			@RequestHeader("end")
+			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+			Date endDate,
+			@ApiParam(value = "The importance level up to which (inclusive) absences are to be ignored", required = false)
+			@RequestParam(required = false)
+			Integer upToLevel,
+			@ApiParam(value = "Bearer token for authentication", required = true)
+			@RequestHeader("Authorization")
+			String authKey){
+		if(!AuthService.isTokenValid(authKey)){
+			TimeSpanListResponse response = new TimeSpanListResponse();
+			response.setMessage("Authorization key is invalid");
+			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
+			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+		}
+
+		TimeSpanListResponse response = new TimeSpanListResponse();
+		List<AbsenceEntity> absences = repository.findAll();
+		if(upToLevel != null){
+			absences = absences.stream()
+					.filter(absence -> absence.getLevel() > upToLevel)
+					.collect(Collectors.toList());
+			response.setMessage(absences.size()+" relevant absences with importance level > "+upToLevel);
+		}
+
+		List<TimeSpan> freeTimes = FreeTimeService.findFreeTimes(
+				new TimeSpan(startDate,endDate),
+				absences);
+
+
+		response.setRespondeCode(RepsonseCode.OK);
+		response.setList(freeTimes);
+		return new ResponseEntity<>(response,HttpStatus.OK);
+	}
+
+	@ApiOperation(value = "Get a single absence by ID")
+	public ResponseEntity<AbsenceResponse> get(
 			@ApiParam(value = "ID of the desired absence")
-			Long id){
-		return repository.findById(id).orElse(null);
+			Long id,
+			@ApiParam(value = "Bearer token for authentication", required = true)
+			@RequestHeader("Authorization")
+			String authKey){
+		if(!AuthService.isTokenValid(authKey)){
+			AbsenceResponse response = new AbsenceResponse();
+			response.setMessage("Authorization key is invalid");
+			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
+			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+		}
+
+		if(repository.existsById(id)){
+			Absence absence = Absence.fromEntity(repository.findById(id).orElse(null));
+
+			AbsenceResponse response = new AbsenceResponse();
+			response.setRespondeCode(RepsonseCode.OK);
+			response.setAbsence(absence);
+			return new ResponseEntity(response,HttpStatus.OK);
+		}else{
+			AbsenceResponse response = new AbsenceResponse();
+			response.setRespondeCode(RepsonseCode.UNKNOWN_ID);
+			response.setAbsence(null);
+			return new ResponseEntity(response,HttpStatus.OK);
+		}
 	}
 
 	@ApiOperation(value = "Delete a single absence by ID")
-	public ResponseEntity<Void> delete(
+	public ResponseEntity<Response> delete(
 			@ApiParam(value = "ID of the target absence")
-			Long id) {
+			Long id,
+			@ApiParam(value = "Bearer token for authentication", required = true)
+			@RequestHeader("Authorization")
+			String authKey) {
+		if(!AuthService.isTokenValid(authKey)){
+			Response response = new Response();
+			response.setMessage("Authorization key is invalid");
+			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
+			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+		}
 
 		repository.deleteById(id);
 
-		return ResponseEntity.noContent().build();
+		Response response = new Response();
+		response.setRespondeCode(RepsonseCode.DELETE_SUCCESSFULL);
+		response.setMessage("Deleted absence with ID: "+id);
+		return new ResponseEntity<>(response,HttpStatus.OK);
 	}
 
 	@ApiOperation(value = "Update a single absence by ID",
 					notes="Will use the URI specified ID and ignore message body (if a different ID is present there).")
-	public ResponseEntity<Absence> update(
+	public ResponseEntity<Response> update(
 			@ApiParam(value = "ID of the target absence")
 			Long id,
 			@ApiParam(value = "Absence information to be stored")
-			Absence absence){
+			Absence absence,
+			@ApiParam(value = "Bearer token for authentication", required = true)
+			@RequestHeader("Authorization")
+			String authKey){
+		if(!AuthService.isTokenValid(authKey)){
+			Response response = new Response();
+			response.setMessage("Authorization key is invalid");
+			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
+			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+		}
 
-		absence.setId(id);
-
-		Absence elementUpdated = repository.save(absence);
-		
-		return new ResponseEntity<Absence>(elementUpdated, HttpStatus.OK);
+		if(absence != null){
+			absence.setId(id);
+			return saveAbsence(absence);
+		}else{
+			Response response = new Response();
+			response.setRespondeCode(RepsonseCode.UPDATE_FAILED);
+			response.setMessage("Given absence was null");
+			return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
+		}
 	}
 
-	@ApiOperation(value = "Create a new absence linked to a known user")
-	public ResponseEntity<Void> create(
+	@ApiOperation(value = "Create a new absence linked to a known person")
+	public ResponseEntity<Response> create(
 			@ApiParam(value = "Absence information to be stored")
-			Absence absence){
+			Absence absence,
+			@ApiParam(value = "Bearer token for authentication", required = true)
+			@RequestHeader("Authorization")
+			String authKey){
+		if(!AuthService.isTokenValid(authKey)){
+			Response response = new Response();
+			response.setMessage("Authorization key is invalid");
+			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
+			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+		}
 
-		Absence createdelement = repository.save(absence);
-		
-		//Location
-		//Get current resource url
-		///{id}
-		URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
-				.path("/{id}").buildAndExpand(createdelement.getId()).toUri();
-		
-		return ResponseEntity.created(uri).build();
+		return saveAbsence(absence);
+	}
+
+	private ResponseEntity<Response> saveAbsence(Absence absence){
+		try {
+			AbsenceEntity absenceEntity = absence.toEntity(personRepository);
+
+			AbsenceEntity absenceUpdated = repository.save(absenceEntity);
+
+			Response response = new Response();
+			response.setRespondeCode(RepsonseCode.SAVE_SUCCESSFULL);
+			response.setMessage("Saved absence with id: "+absenceUpdated.getId());
+			return new ResponseEntity<Response>(response, HttpStatus.OK);
+		}catch (PersonNotFoundException ex){
+			Response response = new Response();
+			response.setRespondeCode(RepsonseCode.SAVE_FAILED);
+			response.setMessage(ex.getMessage());
+			return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
+		}
 	}
 		
 }

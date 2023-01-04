@@ -1,30 +1,27 @@
 package com.ph.rest.webservices.restfulwebservices.model;
 
-import com.ph.model.TimeSpan;
+import com.ph.model.PersonNotFoundException;
+import com.ph.persistence.model.AbsenceEntity;
+import com.ph.persistence.model.PersonEntity;
+import com.ph.persistence.repository.PersonJpaRepository;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.*;
-import java.util.Arrays;
+import java.util.Optional;
 
 @ApiModel(description = "Meant to store absent times for individual users where no further plans are desired. \n" +
 						"Includes an importance level from 0 (irrelevant) to 3 (high) to indicate the strictness of unavailability.")
-@Entity
 public class Absence {
 	@ApiModelProperty(position = 0, value = "", required = false)
-	@Id
-	@GeneratedValue
 	@Getter
 	@Setter
 	private Long id;
 	@ApiModelProperty(position = 1, required = true)
 	@Getter
 	@Setter
-	@ManyToOne
-	@JoinColumn(name = "user_name")
-	private User user;
+	private Long personId;
 	@ApiModelProperty(position = 5, required = false, value = "Vacation without you.")
 	@Getter
 	@Setter
@@ -42,36 +39,30 @@ public class Absence {
 	@Setter
 	private int level;
 
-	@ApiModelProperty(hidden = true)
-	public Importance getImportance() {
-		return Importance.fromInt(level);
+	public static Absence fromEntity(AbsenceEntity entity){
+		Absence absence = new Absence();
+		absence.setId(entity.getId());
+		absence.setPersonId(entity.getPerson().getId());
+		absence.setDescription(entity.getDescription());
+		absence.setStartDate(entity.getStartDate());
+		absence.setEndDate(entity.getEndDate());
+		absence.setLevel(entity.getLevel());
+		return absence;
 	}
 
-	public void setImportance(Importance importance){
-		level = importance.getLevel();
-	}
-
-	public TimeSpan asTimeSpan(){
-		return new TimeSpan(startDate,endDate);
-	}
-
-	public enum Importance {
-		High(3),
-		Medium(2),
-		Low(1),
-		Irrelevant(0);
-
-		@Getter
-		private final int level;
-
-		private Importance(int level){
-			this.level = level;
+	public AbsenceEntity toEntity(PersonJpaRepository personJpaRepository) throws PersonNotFoundException{
+		AbsenceEntity entity = new AbsenceEntity();
+		entity.setId(id);
+		entity.setDescription(description);
+		entity.setLevel(level);
+		entity.setStartDate(startDate);
+		entity.setEndDate(endDate);
+		Optional<PersonEntity> personEntity = personJpaRepository.findById(personId);
+		if(personEntity.isPresent()) {
+			entity.setPerson(personEntity.get());
+		}else{
+			throw new PersonNotFoundException(personId);
 		}
-
-		public static Importance fromInt(int input){
-			return Arrays.stream(Importance.values()).filter(x -> x.getLevel() == input).findAny().orElse(null);
-		}
+		return entity;
 	}
-
-	
 }

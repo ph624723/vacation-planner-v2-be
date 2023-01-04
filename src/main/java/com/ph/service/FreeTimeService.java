@@ -1,17 +1,17 @@
 package com.ph.service;
 
 import com.ph.model.TimeSpan;
-import com.ph.rest.webservices.restfulwebservices.model.Absence;
+import com.ph.persistence.model.AbsenceEntity;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class FreeTimeService {
-    public static List<TimeSpan> findFreeTimes (TimeSpan in, List<Absence> absences){
+    public static List<TimeSpan> findFreeTimes (TimeSpan in, List<AbsenceEntity> absences){
         List<TimeSpan> results = new ArrayList<>();
         results.add(in);
 
-        for (Absence absence : absences) {
+        for (AbsenceEntity absence : absences) {
             List<TimeSpan> newResults = new ArrayList<>();
             for (TimeSpan freeTime : results) {
                 newResults.addAll(freeTime.subtract(absence.asTimeSpan()));
