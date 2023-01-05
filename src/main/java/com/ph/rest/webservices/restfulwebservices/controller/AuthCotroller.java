@@ -10,10 +10,7 @@ import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
@@ -31,7 +28,7 @@ public class AuthCotroller {
     @Autowired
     UserJpaRepository userRepository;
 
-    @GetMapping("/token")
+    @PostMapping("/token")
     @ApiOperation(value = "Retrieves a new token", notes = "Retrieves a new token if the passed user credentials are valid")
     public ResponseEntity<AuthTokenResponse> get(
             @RequestHeader("username")
