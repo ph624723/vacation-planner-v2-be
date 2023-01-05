@@ -31,6 +31,7 @@ public class UserController implements IRootController<User,String>{
 	private PersonJpaRepository personRepository;
 
 	private final String rootUserName = "root";
+	private final String rootUserErrorText = "Root privileges required to access user data.";
 
 	@ApiOperation(value = "Gets all stored users")
 	public ResponseEntity<UserListResponse> getAll(
@@ -40,6 +41,7 @@ public class UserController implements IRootController<User,String>{
 		if(!authenticateRootUser(username,password)){
 			UserListResponse response = new UserListResponse();
 			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
+			response.setMessage(rootUserErrorText);
 			response.setList(null);
 			return new ResponseEntity<>(response,HttpStatus.UNAUTHORIZED);
 		}
@@ -58,6 +60,7 @@ public class UserController implements IRootController<User,String>{
 		if(!authenticateRootUser(username,password)){
 			UserResponse response = new UserResponse();
 			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
+			response.setMessage(rootUserErrorText);
 			response.setUser(null);
 			return new ResponseEntity<>(response,HttpStatus.UNAUTHORIZED);
 		}
@@ -84,6 +87,7 @@ public class UserController implements IRootController<User,String>{
 		if(!authenticateRootUser(username,password)){
 			Response response = new Response();
 			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
+			response.setMessage(rootUserErrorText);
 			return new ResponseEntity<>(response,HttpStatus.UNAUTHORIZED);
 		}
 
@@ -110,6 +114,7 @@ public class UserController implements IRootController<User,String>{
 		if(!(authenticateRootUser(username,password) || authenticateOwnUser(username,password,id))){
 			Response response = new Response();
 			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
+			if (!(username.equals(id) || username.equals(rootUserName))) response.setMessage("Only the owned user can be edited without root privileges");
 			return new ResponseEntity<>(response,HttpStatus.UNAUTHORIZED);
 		}
 
@@ -146,7 +151,15 @@ public class UserController implements IRootController<User,String>{
 		if(!authenticateRootUser(username,password)){
 			Response response = new Response();
 			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
+			response.setMessage(rootUserErrorText);
 			return new ResponseEntity<>(response,HttpStatus.UNAUTHORIZED);
+		}
+
+		if(user.getPerson() == null){
+			Response response = new Response();
+			response.setRespondeCode(RepsonseCode.SAVE_FAILED);
+			response.setMessage("Given person was null");
+			return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
 		}
 				
 		return saveUser(user);

@@ -102,7 +102,7 @@ public class PersonController {
 				if(person.getUserId() != null && !person.getUserId().equals(oldPerson.getUser().getName())){
 					Response response = new Response();
 					response.setRespondeCode(RepsonseCode.UPDATE_FAILED);
-					response.setMessage("Unexpected username. OneToOne user assignment cannot be changed. \n"+
+					response.setMessage("Unexpected username. OneToOne user assignment cannot be changed. "+
 										"Ideally, no userId should be passed.");
 					return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
 				}
