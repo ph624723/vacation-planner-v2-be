@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -119,23 +120,21 @@ public class UserController implements IRootController<User,String>{
 		}
 
 		if(user != null){
-		if(repository.existsById(id)){
-			user.setName(id);
-			if(user.getPerson() != null){
+			if(repository.existsById(id)){
 				UserEntity oldUser = repository.findById(id).get();
-				user.getPerson().setId(oldUser.getPersonData().getId());
+				user.setName(id);
+				if(user.getPerson() == null){
+					Response response = new Response();
+					response.setRespondeCode(RepsonseCode.UPDATE_FAILED);
+					response.setMessage("Given person was null");
+					return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
+				}
+				return saveUser(user, oldUser);
 			}else{
 				Response response = new Response();
-				response.setRespondeCode(RepsonseCode.UPDATE_FAILED);
-				response.setMessage("Given person was null");
-				return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
+				response.setRespondeCode(RepsonseCode.UNKNOWN_ID);
+				return new ResponseEntity(response,HttpStatus.BAD_REQUEST);
 			}
-			return saveUser(user);
-		}else{
-			Response response = new Response();
-			response.setRespondeCode(RepsonseCode.UNKNOWN_ID);
-			return new ResponseEntity(response,HttpStatus.BAD_REQUEST);
-		}
 		}else{
 			Response response = new Response();
 			response.setRespondeCode(RepsonseCode.UPDATE_FAILED);
@@ -162,12 +161,12 @@ public class UserController implements IRootController<User,String>{
 			return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
 		}
 				
-		return saveUser(user);
+		return saveUser(user,null);
 	}
 
-	private ResponseEntity<Response> saveUser(User user){
+	private ResponseEntity<Response> saveUser(User user, UserEntity oldUser){
 			user.setPassword(HashService.MD5(user.getPassword()));
-			UserEntity userEntity = user.toEntity();
+			UserEntity userEntity = user.toEntity(oldUser);
 
 			UserEntity userUpdated = repository.save(userEntity);
 

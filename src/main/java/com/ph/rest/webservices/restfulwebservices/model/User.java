@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.Date;
 import java.util.Optional;
 
 public class User {
@@ -32,11 +33,13 @@ public class User {
 		return user;
 	}
 
-	public UserEntity toEntity() {
-		UserEntity entity = new UserEntity();
+	public UserEntity toEntity(UserEntity oldUser) {
+		UserEntity entity = oldUser == null ?
+				new UserEntity():
+				oldUser;
 		entity.setName(name);
 		entity.setPassword(password);
-		entity.setPersonData(person.toEntity(entity));
+		entity.setPersonData(person.toEntity(entity.getPersonData()));
 		return entity;
 	}
 

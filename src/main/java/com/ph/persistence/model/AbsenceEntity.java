@@ -3,9 +3,12 @@ package com.ph.persistence.model;
 import com.ph.model.TimeSpan;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.util.Arrays;
+import java.util.Date;
 
 @Entity
 @Table(name = "absence")
@@ -38,6 +41,17 @@ public class AbsenceEntity {
 	@Getter
 	@Setter
 	private int level;
+
+	@Getter
+	@Setter
+	@CreationTimestamp
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date created;
+	@Getter
+	@Setter
+	@UpdateTimestamp
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date updated;
 
 	public Importance getImportance() {
 		return Importance.fromInt(level);

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -249,8 +250,14 @@ public class AbsenceController implements IController<Absence,Long> {
 		}
 
 		if(absence != null){
-			absence.setId(id);
-			return saveAbsence(absence);
+			Optional<AbsenceEntity> oldAbsence = repository.findById(id);
+			if(oldAbsence.isPresent()){
+				return saveAbsence(absence,oldAbsence.get());
+			}else{
+				Response response = new Response();
+				response.setRespondeCode(RepsonseCode.UNKNOWN_ID);
+				return new ResponseEntity(response,HttpStatus.BAD_REQUEST);
+			}
 		}else{
 			Response response = new Response();
 			response.setRespondeCode(RepsonseCode.UPDATE_FAILED);
@@ -273,12 +280,12 @@ public class AbsenceController implements IController<Absence,Long> {
 			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
 		}
 
-		return saveAbsence(absence);
+		return saveAbsence(absence, null);
 	}
 
-	private ResponseEntity<Response> saveAbsence(Absence absence){
+	private ResponseEntity<Response> saveAbsence(Absence absence, AbsenceEntity oldPerson){
 		try {
-			AbsenceEntity absenceEntity = absence.toEntity(personRepository);
+			AbsenceEntity absenceEntity = absence.toEntity(oldPerson, personRepository);
 
 			AbsenceEntity absenceUpdated = repository.save(absenceEntity);
 

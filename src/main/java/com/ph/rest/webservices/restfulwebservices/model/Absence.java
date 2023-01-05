@@ -9,6 +9,8 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.validation.constraints.Null;
+import java.util.Date;
 import java.util.Optional;
 
 @ApiModel(description = "Meant to store absent times for individual users where no further plans are desired. \n" +
@@ -50,9 +52,10 @@ public class Absence {
 		return absence;
 	}
 
-	public AbsenceEntity toEntity(PersonJpaRepository personJpaRepository) throws PersonNotFoundException{
-		AbsenceEntity entity = new AbsenceEntity();
-		entity.setId(id);
+	public AbsenceEntity toEntity(AbsenceEntity oldAbsence, PersonJpaRepository personJpaRepository) throws PersonNotFoundException {
+		AbsenceEntity entity = oldAbsence == null ?
+				new AbsenceEntity() :
+				oldAbsence;
 		entity.setDescription(description);
 		entity.setLevel(level);
 		entity.setStartDate(startDate);

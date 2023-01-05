@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -106,10 +107,8 @@ public class PersonController {
 										"Ideally, no userId should be passed.");
 					return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
 				}
-				person.setId(id);
-				person.setUserId(oldPerson.getUser().getName());
 
-				return savePerson(person);
+				return savePerson(person, oldPerson);
 			}else{
 				Response response = new Response();
 				response.setRespondeCode(RepsonseCode.UNKNOWN_ID);
@@ -123,21 +122,14 @@ public class PersonController {
 		}
 	}
 
-	private ResponseEntity<Response> savePerson(Person person){
-		try {
-			PersonEntity personEntity = person.toEntity(userRepository);
+	private ResponseEntity<Response> savePerson(Person person, PersonEntity oldPerson){
+		PersonEntity personEntity = person.toEntity(oldPerson);
 
-			PersonEntity personUpdated = repository.save(personEntity);
+		PersonEntity personUpdated = repository.save(personEntity);
 
-			Response response = new Response();
-			response.setRespondeCode(RepsonseCode.SAVE_SUCCESSFULL);
-			response.setMessage("Saved person with id: "+personUpdated.getId());
-			return new ResponseEntity<Response>(response, HttpStatus.OK);
-		}catch (UserNotFoundException ex){
-			Response response = new Response();
-			response.setRespondeCode(RepsonseCode.SAVE_FAILED);
-			response.setMessage(ex.getMessage());
-			return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
-		}
+		Response response = new Response();
+		response.setRespondeCode(RepsonseCode.SAVE_SUCCESSFULL);
+		response.setMessage("Saved person with id: "+personUpdated.getId());
+		return new ResponseEntity<Response>(response, HttpStatus.OK);
 	}
 }

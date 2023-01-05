@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.Date;
 import java.util.Optional;
 
 public class Person {
@@ -38,22 +39,13 @@ public class Person {
         return person;
     }
 
-    public PersonEntity toEntity(UserJpaRepository userJpaRepository) throws UserNotFoundException {
-        Optional<UserEntity> userEntity = userJpaRepository.findById(userId);
-        if(userEntity.isPresent()) {
-            return toEntity(userEntity.get());
-        }else{
-            throw new UserNotFoundException(userId);
-        }
-    }
-
-    public PersonEntity toEntity(UserEntity userEntity){
-        PersonEntity entity = new PersonEntity();
-        entity.setId(id);
+    public PersonEntity toEntity(PersonEntity oldPerson) {
+        PersonEntity entity = oldPerson == null ?
+                new PersonEntity() :
+                oldPerson;
+        System.out.println("---------------personId: "+entity.getId()+" userId: "+entity.getUser());
         entity.setName(name);
         entity.setContact(contact);
-        entity.setUser(userEntity);
-
         return entity;
     }
 

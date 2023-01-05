@@ -6,8 +6,11 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -38,6 +41,17 @@ public class PersonEntity {
     @OneToMany(mappedBy = "person")
     @Cascade(org.hibernate.annotations.CascadeType.ALL)
     private List<AbsenceEntity> absences;
+
+    @Getter
+    @Setter
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date created;
+    @Getter
+    @Setter
+    @UpdateTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date updated;
 
     @Override
     public String toString(){
