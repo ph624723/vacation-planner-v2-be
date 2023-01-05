@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -83,7 +82,7 @@ public class AbsenceController implements IController<Absence,Long> {
 
 	@ApiOperation(value="Gets time-slots without absences for a single person",
 			notes = "Gets time-slots without absences inside the specified time-frame. Optionally an importance level can be specified up to which absences are to be ignored.")
-	@GetMapping("/person/{personId}/free")
+	@GetMapping("/person/{personIds}/free")
 	public ResponseEntity<TimeSpanListResponse> findFreeTimesByUser(
 			@ApiParam(value = "The inclusive start-date of the desired time-frame in ISO format", required = true)
 			@RequestHeader("start")
@@ -96,9 +95,9 @@ public class AbsenceController implements IController<Absence,Long> {
 			@ApiParam(value = "The importance level up to which (inclusive) absences are to be ignored", required = false)
 			@RequestParam(required = false)
 			Integer upToLevel,
-			@ApiParam(value = "The user to get absences for", required = true)
+			@ApiParam(value = "The users to get absences for. Comma separated list of IDs", required = true)
 			@PathVariable
-			Long personId,
+			List<Long> personIds,
 			@ApiParam(value = "Bearer token for authentication", required = true)
 			@RequestHeader("Authorization")
 			String authKey){
@@ -109,17 +108,17 @@ public class AbsenceController implements IController<Absence,Long> {
 			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
 		}
 
-		Optional<PersonEntity> person = personRepository.findById(personId);
-		if(!person.isPresent()) {
+		List<PersonEntity> persons = personRepository.findAllById(personIds);
+		if(persons.isEmpty()) {
 			TimeSpanListResponse response = new TimeSpanListResponse();
 			response.setRespondeCode(RepsonseCode.UNKNOWN_ID);
 			response.setList(null);
-			response.setMessage(new PersonNotFoundException(personId).getMessage());
+			response.setMessage(new PersonNotFoundException(personIds).getMessage());
 			return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
 		}
 
 		TimeSpanListResponse response = new TimeSpanListResponse();
-		List<AbsenceEntity> absences = repository.findByPerson(person.get());
+		List<AbsenceEntity> absences = repository.findByPersonIn(persons);
 		if(upToLevel != null){
 			absences = absences.stream()
 					.filter(absence -> absence.getLevel() > upToLevel)
@@ -131,7 +130,7 @@ public class AbsenceController implements IController<Absence,Long> {
 				new TimeSpan(startDate,endDate),
 				absences);
 
-
+		response.setMessage("Considered person ids: "+persons.stream().map(x -> x.getId().toString()).collect(Collectors.joining(", ")));
 		response.setRespondeCode(RepsonseCode.OK);
 		response.setList(freeTimes);
 		return new ResponseEntity<>(response,HttpStatus.OK);
