@@ -10,5 +10,6 @@ public enum RepsonseCode {
     UNKNOWN_ID,
     OK,
     CREDENTIALS_ACCEPTED,
-    CREDENTIALS_DENIED
+    CREDENTIALS_DENIED,
+    TOKEN_DENIED
 }

@@ -37,7 +37,7 @@ public class PersonController {
 		if(!AuthService.isTokenValid(authKey)){
 			PersonListResponse response = new PersonListResponse();
 			response.setMessage("Authorization key is invalid");
-			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
+			response.setRespondeCode(RepsonseCode.TOKEN_DENIED);
 			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
 		}
 
@@ -60,7 +60,7 @@ public class PersonController {
 		if(!AuthService.isTokenValid(authKey)){
 			PersonResponse response = new PersonResponse();
 			response.setMessage("Authorization key is invalid");
-			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
+			response.setRespondeCode(RepsonseCode.TOKEN_DENIED);
 			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
 		}
 
@@ -93,7 +93,7 @@ public class PersonController {
 		if(!AuthService.isTokenValid(authKey)){
 			Response response = new Response();
 			response.setMessage("Authorization key is invalid");
-			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
+			response.setRespondeCode(RepsonseCode.TOKEN_DENIED);
 			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
 		}
 

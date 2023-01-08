@@ -66,7 +66,7 @@ public class AuthCotroller {
             return new ResponseEntity<>(response, HttpStatus.ACCEPTED);
         }else{
             response.setMessage("Key is invalid");
-            response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
+            response.setRespondeCode(RepsonseCode.TOKEN_DENIED);
             return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
         }
     }

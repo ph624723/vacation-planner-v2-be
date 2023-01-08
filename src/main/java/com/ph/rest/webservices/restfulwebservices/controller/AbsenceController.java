@@ -39,7 +39,7 @@ public class AbsenceController implements IController<Absence,Long> {
 		if(!AuthService.isTokenValid(authKey)){
 			AbsenceListResponse response = new AbsenceListResponse();
 			response.setMessage("Authorization key is invalid");
-			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
+			response.setRespondeCode(RepsonseCode.TOKEN_DENIED);
 			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
 		}
 
@@ -62,7 +62,7 @@ public class AbsenceController implements IController<Absence,Long> {
 		if(!AuthService.isTokenValid(authKey)){
 			AbsenceListResponse response = new AbsenceListResponse();
 			response.setMessage("Authorization key is invalid");
-			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
+			response.setRespondeCode(RepsonseCode.TOKEN_DENIED);
 			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
 		}
 
@@ -105,7 +105,7 @@ public class AbsenceController implements IController<Absence,Long> {
 		if(!AuthService.isTokenValid(authKey)){
 			TimeSpanListResponse response = new TimeSpanListResponse();
 			response.setMessage("Authorization key is invalid");
-			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
+			response.setRespondeCode(RepsonseCode.TOKEN_DENIED);
 			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
 		}
 
@@ -158,7 +158,7 @@ public class AbsenceController implements IController<Absence,Long> {
 		if(!AuthService.isTokenValid(authKey)){
 			TimeSpanListResponse response = new TimeSpanListResponse();
 			response.setMessage("Authorization key is invalid");
-			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
+			response.setRespondeCode(RepsonseCode.TOKEN_DENIED);
 			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
 		}
 
@@ -191,7 +191,7 @@ public class AbsenceController implements IController<Absence,Long> {
 		if(!AuthService.isTokenValid(authKey)){
 			AbsenceResponse response = new AbsenceResponse();
 			response.setMessage("Authorization key is invalid");
-			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
+			response.setRespondeCode(RepsonseCode.TOKEN_DENIED);
 			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
 		}
 
@@ -220,7 +220,7 @@ public class AbsenceController implements IController<Absence,Long> {
 		if(!AuthService.isTokenValid(authKey)){
 			Response response = new Response();
 			response.setMessage("Authorization key is invalid");
-			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
+			response.setRespondeCode(RepsonseCode.TOKEN_DENIED);
 			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
 		}
 
@@ -245,7 +245,7 @@ public class AbsenceController implements IController<Absence,Long> {
 		if(!AuthService.isTokenValid(authKey)){
 			Response response = new Response();
 			response.setMessage("Authorization key is invalid");
-			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
+			response.setRespondeCode(RepsonseCode.TOKEN_DENIED);
 			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
 		}
 
@@ -276,7 +276,7 @@ public class AbsenceController implements IController<Absence,Long> {
 		if(!AuthService.isTokenValid(authKey)){
 			Response response = new Response();
 			response.setMessage("Authorization key is invalid");
-			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
+			response.setRespondeCode(RepsonseCode.TOKEN_DENIED);
 			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
 		}
 
