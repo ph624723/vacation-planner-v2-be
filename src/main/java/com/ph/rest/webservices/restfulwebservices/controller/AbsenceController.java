@@ -83,7 +83,7 @@ public class AbsenceController implements IController<Absence,Long> {
 
 	@ApiOperation(value="Gets time-slots without absences for a single person",
 			notes = "Gets time-slots without absences inside the specified time-frame. Optionally an importance level can be specified up to which absences are to be ignored.")
-	@GetMapping("/person/{personIds}/free")
+	@GetMapping("/free/person/{personIds}")
 	public ResponseEntity<TimeSpanListResponse> findFreeTimesByUser(
 			@ApiParam(value = "The inclusive start-date of the desired time-frame in ISO format", required = true)
 			@RequestHeader("start")
