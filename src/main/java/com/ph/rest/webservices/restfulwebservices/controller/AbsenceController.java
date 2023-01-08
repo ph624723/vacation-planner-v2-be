@@ -224,12 +224,18 @@ public class AbsenceController implements IController<Absence,Long> {
 			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
 		}
 
-		repository.deleteById(id);
+		if(repository.existsById(id)){
+			repository.deleteById(id);
 
-		Response response = new Response();
-		response.setRespondeCode(RepsonseCode.DELETE_SUCCESSFULL);
-		response.setMessage("Deleted absence with ID: "+id);
-		return new ResponseEntity<>(response,HttpStatus.OK);
+			Response response = new Response();
+			response.setRespondeCode(RepsonseCode.DELETE_SUCCESSFULL);
+			response.setMessage("Deleted absence with ID: "+id);
+			return new ResponseEntity<>(response,HttpStatus.OK);
+		}else{
+			Response response = new Response();
+			response.setRespondeCode(RepsonseCode.UNKNOWN_ID);
+			return new ResponseEntity(response,HttpStatus.BAD_REQUEST);
+		}
 	}
 
 	@ApiOperation(value = "Update a single absence by ID",
