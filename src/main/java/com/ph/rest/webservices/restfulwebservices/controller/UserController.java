@@ -108,12 +108,12 @@ public class UserController implements IRootController<User,String>{
 
 	@ApiOperation(value = "Update a single user by ID",
 			notes="Will use the URI specified ID and ignore message body (if a different ID is present there). The same is true for person information")
-	public ResponseEntity<Response> update(String id,
+	public ResponseEntity<ResourceIdResponse<String>> update(String id,
 										   User user,
 										   String username,
 										   String password){
 		if(!(authenticateRootUser(username,password) || authenticateOwnUser(username,password,id))){
-			Response response = new Response();
+			ResourceIdResponse response = new ResourceIdResponse();
 			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
 			if (!(username.equals(id) || username.equals(rootUserName))) response.setMessage("Only the owned user can be edited without root privileges");
 			return new ResponseEntity<>(response,HttpStatus.UNAUTHORIZED);
@@ -124,7 +124,7 @@ public class UserController implements IRootController<User,String>{
 				UserEntity oldUser = repository.findById(id).get();
 				user.setName(id);
 				if(user.getPerson() == null){
-					Response response = new Response();
+					ResourceIdResponse response = new ResourceIdResponse();
 					response.setRespondeCode(RepsonseCode.UPDATE_FAILED);
 					response.setMessage("Given person was null");
 					return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
@@ -136,7 +136,7 @@ public class UserController implements IRootController<User,String>{
 				return new ResponseEntity(response,HttpStatus.BAD_REQUEST);
 			}
 		}else{
-			Response response = new Response();
+			ResourceIdResponse response = new ResourceIdResponse();
 			response.setRespondeCode(RepsonseCode.UPDATE_FAILED);
 			response.setMessage("Given user was null");
 			return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
@@ -144,18 +144,18 @@ public class UserController implements IRootController<User,String>{
 	}
 
 	@ApiOperation(value = "Create a new user+person combination")
-	public ResponseEntity<Response> create(User user,
+	public ResponseEntity<ResourceIdResponse<String>> create(User user,
 										   String username,
 										   String password){
 		if(!authenticateRootUser(username,password)){
-			Response response = new Response();
+			ResourceIdResponse response = new ResourceIdResponse();
 			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
 			response.setMessage(rootUserErrorText);
 			return new ResponseEntity<>(response,HttpStatus.UNAUTHORIZED);
 		}
 
 		if(user.getPerson() == null){
-			Response response = new Response();
+			ResourceIdResponse response = new ResourceIdResponse();
 			response.setRespondeCode(RepsonseCode.SAVE_FAILED);
 			response.setMessage("Given person was null");
 			return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
@@ -164,16 +164,17 @@ public class UserController implements IRootController<User,String>{
 		return saveUser(user,null);
 	}
 
-	private ResponseEntity<Response> saveUser(User user, UserEntity oldUser){
+	private ResponseEntity<ResourceIdResponse<String>> saveUser(User user, UserEntity oldUser){
 			user.setPassword(HashService.MD5(user.getPassword()));
 			UserEntity userEntity = user.toEntity(oldUser);
 
 			UserEntity userUpdated = repository.save(userEntity);
 
-			Response response = new Response();
+			ResourceIdResponse<String> response = new ResourceIdResponse<>();
+			response.setResourceId(userUpdated.getName());
 			response.setRespondeCode(RepsonseCode.SAVE_SUCCESSFULL);
 			response.setMessage("Saved user with name: "+userUpdated.getName());
-			return new ResponseEntity<Response>(response, HttpStatus.OK);
+			return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
 	private boolean authenticateRootUser(String username, String password){

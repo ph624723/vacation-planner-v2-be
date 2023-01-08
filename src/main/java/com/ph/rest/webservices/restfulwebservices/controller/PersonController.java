@@ -82,7 +82,7 @@ public class PersonController {
 	@PutMapping("/{id}")
 	@ApiOperation(value = "Update a single person by ID",
 			notes="Will use the URI specified ID and ignore message body (if a different ID is present there). Linked userId cannot be changed.")
-	public ResponseEntity<Response> update(
+	public ResponseEntity<ResourceIdResponse<Long>> update(
 			@PathVariable
 			Long id,
 			@RequestBody
@@ -91,7 +91,7 @@ public class PersonController {
 			@RequestHeader("Authorization")
 			String authKey){
 		if(!AuthService.isTokenValid(authKey)){
-			Response response = new Response();
+			ResourceIdResponse response = new ResourceIdResponse();
 			response.setMessage("Authorization key is invalid");
 			response.setRespondeCode(RepsonseCode.TOKEN_DENIED);
 			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
@@ -101,7 +101,7 @@ public class PersonController {
 			if(repository.existsById(id)){
 				PersonEntity oldPerson = repository.findById(id).get();
 				if(person.getUserId() != null && !person.getUserId().equals(oldPerson.getUser().getName())){
-					Response response = new Response();
+					ResourceIdResponse response = new ResourceIdResponse();
 					response.setRespondeCode(RepsonseCode.UPDATE_FAILED);
 					response.setMessage("Unexpected username. OneToOne user assignment cannot be changed. "+
 										"Ideally, no userId should be passed.");
@@ -115,21 +115,22 @@ public class PersonController {
 				return new ResponseEntity(response,HttpStatus.BAD_REQUEST);
 			}
 		}else{
-			Response response = new Response();
+			ResourceIdResponse response = new ResourceIdResponse();
 			response.setRespondeCode(RepsonseCode.UPDATE_FAILED);
 			response.setMessage("Given person was null");
 			return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
 		}
 	}
 
-	private ResponseEntity<Response> savePerson(Person person, PersonEntity oldPerson){
+	private ResponseEntity<ResourceIdResponse<Long>> savePerson(Person person, PersonEntity oldPerson){
 		PersonEntity personEntity = person.toEntity(oldPerson);
 
 		PersonEntity personUpdated = repository.save(personEntity);
 
-		Response response = new Response();
+		ResourceIdResponse<Long> response = new ResourceIdResponse();
+		response.setResourceId(personUpdated.getId());
 		response.setRespondeCode(RepsonseCode.SAVE_SUCCESSFULL);
 		response.setMessage("Saved person with id: "+personUpdated.getId());
-		return new ResponseEntity<Response>(response, HttpStatus.OK);
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 }

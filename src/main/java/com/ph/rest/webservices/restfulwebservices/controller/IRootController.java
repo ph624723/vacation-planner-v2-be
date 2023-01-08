@@ -1,6 +1,7 @@
 package com.ph.rest.webservices.restfulwebservices.controller;
 
 import com.ph.rest.webservices.restfulwebservices.model.ListResponse;
+import com.ph.rest.webservices.restfulwebservices.model.ResourceIdResponse;
 import com.ph.rest.webservices.restfulwebservices.model.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +30,7 @@ public interface IRootController<T, IDtype> {
 
 
     @PutMapping("/{id}")
-    public ResponseEntity<Response> update(
+    public ResponseEntity<ResourceIdResponse<IDtype>> update(
             @PathVariable IDtype id,
             @RequestBody T element,
             @RequestHeader("username") String username,
@@ -37,7 +38,7 @@ public interface IRootController<T, IDtype> {
     );
 
     @PostMapping("/")
-    public ResponseEntity<Response> create(
+    public ResponseEntity<ResourceIdResponse<IDtype>> create(
             @RequestBody T element,
             @RequestHeader("username") String username,
             @RequestHeader("password") String password

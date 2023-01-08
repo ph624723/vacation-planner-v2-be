@@ -1,6 +1,7 @@
 package com.ph.rest.webservices.restfulwebservices.controller;
 
 import com.ph.rest.webservices.restfulwebservices.model.ListResponse;
+import com.ph.rest.webservices.restfulwebservices.model.ResourceIdResponse;
 import com.ph.rest.webservices.restfulwebservices.model.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,7 +32,7 @@ public interface IController<T, IDtype> {
 
 
     @PutMapping("/{id}")
-    public ResponseEntity<Response> update(
+    public ResponseEntity<ResourceIdResponse<IDtype>> update(
             @PathVariable
             IDtype id,
             @RequestBody
@@ -40,7 +41,7 @@ public interface IController<T, IDtype> {
             String authKey);
 
     @PostMapping("/")
-    public ResponseEntity<Response> create(
+    public ResponseEntity<ResourceIdResponse<IDtype>> create(
             @RequestBody
             T element,
             @RequestHeader("Authorization")

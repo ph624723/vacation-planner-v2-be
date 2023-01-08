@@ -234,7 +234,7 @@ public class AbsenceController implements IController<Absence,Long> {
 
 	@ApiOperation(value = "Update a single absence by ID",
 					notes="Will use the URI specified ID and ignore message body (if a different ID is present there).")
-	public ResponseEntity<Response> update(
+	public ResponseEntity<ResourceIdResponse<Long>> update(
 			@ApiParam(value = "ID of the target absence")
 			Long id,
 			@ApiParam(value = "Absence information to be stored")
@@ -243,7 +243,7 @@ public class AbsenceController implements IController<Absence,Long> {
 			@RequestHeader("Authorization")
 			String authKey){
 		if(!AuthService.isTokenValid(authKey)){
-			Response response = new Response();
+			ResourceIdResponse response = new ResourceIdResponse();
 			response.setMessage("Authorization key is invalid");
 			response.setRespondeCode(RepsonseCode.TOKEN_DENIED);
 			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
@@ -259,7 +259,7 @@ public class AbsenceController implements IController<Absence,Long> {
 				return new ResponseEntity(response,HttpStatus.BAD_REQUEST);
 			}
 		}else{
-			Response response = new Response();
+			ResourceIdResponse response = new ResourceIdResponse();
 			response.setRespondeCode(RepsonseCode.UPDATE_FAILED);
 			response.setMessage("Given absence was null");
 			return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
@@ -267,14 +267,14 @@ public class AbsenceController implements IController<Absence,Long> {
 	}
 
 	@ApiOperation(value = "Create a new absence linked to a known person")
-	public ResponseEntity<Response> create(
+	public ResponseEntity<ResourceIdResponse<Long>> create(
 			@ApiParam(value = "Absence information to be stored")
 			Absence absence,
 			@ApiParam(value = "Bearer token for authentication", required = true)
 			@RequestHeader("Authorization")
 			String authKey){
 		if(!AuthService.isTokenValid(authKey)){
-			Response response = new Response();
+			ResourceIdResponse response = new ResourceIdResponse();
 			response.setMessage("Authorization key is invalid");
 			response.setRespondeCode(RepsonseCode.TOKEN_DENIED);
 			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
@@ -283,18 +283,19 @@ public class AbsenceController implements IController<Absence,Long> {
 		return saveAbsence(absence, null);
 	}
 
-	private ResponseEntity<Response> saveAbsence(Absence absence, AbsenceEntity oldPerson){
+	private ResponseEntity<ResourceIdResponse<Long>> saveAbsence(Absence absence, AbsenceEntity oldPerson){
 		try {
 			AbsenceEntity absenceEntity = absence.toEntity(oldPerson, personRepository);
 
 			AbsenceEntity absenceUpdated = repository.save(absenceEntity);
 
-			Response response = new Response();
+			ResourceIdResponse<Long> response = new ResourceIdResponse();
+			response.setResourceId(absenceUpdated.getId());
 			response.setRespondeCode(RepsonseCode.SAVE_SUCCESSFULL);
 			response.setMessage("Saved absence with id: "+absenceUpdated.getId());
-			return new ResponseEntity<Response>(response, HttpStatus.OK);
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		}catch (PersonNotFoundException ex){
-			Response response = new Response();
+			ResourceIdResponse<Long> response = new ResourceIdResponse();
 			response.setRespondeCode(RepsonseCode.SAVE_FAILED);
 			response.setMessage(ex.getMessage());
 			return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
