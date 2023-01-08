@@ -77,7 +77,7 @@ public class UserController implements IRootController<User,String>{
 			UserResponse response = new UserResponse();
 			response.setRespondeCode(RepsonseCode.UNKNOWN_ID);
 			response.setUser(null);
-			return new ResponseEntity(response,HttpStatus.OK);
+			return new ResponseEntity(response,HttpStatus.BAD_REQUEST);
 		}
 	}
 

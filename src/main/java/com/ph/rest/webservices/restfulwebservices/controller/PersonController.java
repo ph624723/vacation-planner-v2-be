@@ -75,7 +75,7 @@ public class PersonController {
 			PersonResponse response = new PersonResponse();
 			response.setRespondeCode(RepsonseCode.UNKNOWN_ID);
 			response.setPerson(null);
-			return new ResponseEntity(response,HttpStatus.OK);
+			return new ResponseEntity(response,HttpStatus.BAD_REQUEST);
 		}
 	}
 

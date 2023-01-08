@@ -206,7 +206,7 @@ public class AbsenceController implements IController<Absence,Long> {
 			AbsenceResponse response = new AbsenceResponse();
 			response.setRespondeCode(RepsonseCode.UNKNOWN_ID);
 			response.setAbsence(null);
-			return new ResponseEntity(response,HttpStatus.OK);
+			return new ResponseEntity(response,HttpStatus.BAD_REQUEST);
 		}
 	}
 
