@@ -26,7 +26,7 @@ public class AuthService {
             key += c;
         }
         key = key.replace("\\","").replaceAll("[\\'\\\"]","");
-        key = "Bearer "+key;
+        //key = "Bearer "+key;
         AuthToken token = new AuthToken();
         token.setTokenKey(key);
         token.setCreatedAt(LocalDateTime.now());
