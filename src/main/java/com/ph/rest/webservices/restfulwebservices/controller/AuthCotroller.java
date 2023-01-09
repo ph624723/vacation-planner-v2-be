@@ -38,7 +38,15 @@ public class AuthCotroller {
         Optional<UserEntity> user = userRepository.findById(username);
         if(user.isPresent() &&
            user.get().getPassword().equals(HashService.MD5(password))){
-            AuthToken token = AuthService.generateToken(password);
+            AuthToken token;
+            try {
+                token = AuthService.generateToken(password);
+            }catch (ToManySessionsException e){
+                AuthTokenResponse response = new AuthTokenResponse();
+                response.setMessage(e.getMessage());
+                response.setRespondeCode(RepsonseCode.MAX_CONCURRENT_SESSIONS_EXEEDED);
+                return new ResponseEntity<>(response, HttpStatus.INSUFFICIENT_STORAGE);
+            }
             AuthTokenResponse response = new AuthTokenResponse();
             response.setAuthToken(token);
             response.setRespondeCode(RepsonseCode.CREDENTIALS_ACCEPTED);

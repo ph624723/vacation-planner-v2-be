@@ -1,6 +1,8 @@
 package com.ph.service;
 
+import com.ph.model.ToManySessionsException;
 import com.ph.rest.webservices.restfulwebservices.model.AuthToken;
+import lombok.Getter;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -10,11 +12,17 @@ import java.util.Random;
 
 public class AuthService {
     private static final int tokenKeyLength = 50;
-    private static final Duration tokenLifetime = Duration.ofMinutes(30);
+    @Getter
+    private static final int maxConcurrentSessions = 1000;
+    @Getter
+    private static final Duration tokenLifetime = Duration.ofMinutes(120);
     private static List<AuthToken> activeTokens = new ArrayList<>();
 
-    public static AuthToken generateToken(String password){
+    public static AuthToken generateToken(String password) throws ToManySessionsException {
         removeInvalidTokens();
+        if((activeTokens.size()+1)>maxConcurrentSessions)
+            throw new ToManySessionsException();
+
         long hash = LocalDateTime.now().hashCode();
         for (char c : password.toCharArray()) {
             hash = 31L*hash + c;
@@ -30,7 +38,8 @@ public class AuthService {
         AuthToken token = new AuthToken();
         token.setTokenKey(key);
         token.setCreatedAt(LocalDateTime.now());
-        token.setLifetime(tokenLifetime.toMinutes()+" minutes");
+        token.setExpiresAt(token.getCreatedAt().plus(tokenLifetime));
+        token.setTokenType("Bearer");
         activeTokens.add(token);
         return token;
     }

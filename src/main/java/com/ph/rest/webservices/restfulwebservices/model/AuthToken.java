@@ -20,5 +20,10 @@ public class AuthToken {
 
     @Getter
     @Setter
-    private String lifetime;
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private LocalDateTime expiresAt;
+
+    @Getter
+    @Setter
+    private String tokenType;
 }
