@@ -1,5 +1,6 @@
 package com.ph.rest.webservices.restfulwebservices.controller;
 
+import com.ph.model.ToManySessionsException;
 import com.ph.persistence.model.UserEntity;
 import com.ph.persistence.repository.UserJpaRepository;
 import com.ph.rest.webservices.restfulwebservices.model.*;
@@ -31,10 +32,23 @@ public class AuthCotroller {
     @PostMapping("/token")
     @ApiOperation(value = "Retrieves a new token", notes = "Retrieves a new token if the passed user credentials are valid")
     public ResponseEntity<AuthTokenResponse> get(
-            @RequestHeader("username")
+            @RequestHeader(value = "username", required = false)
             String username,
-            @RequestHeader("password")
-            String password){
+            @RequestHeader(value = "password", required = false)
+            String password,
+            @RequestBody(required = false)
+            Credentials credentials){
+        if(username == null || password == null){
+            if(credentials != null && credentials.getUsername() != null && credentials.getPassword() != null){
+                username = credentials.getUsername();
+                password = credentials.getPassword();
+            }else{
+                AuthTokenResponse response = new AuthTokenResponse();
+                response.setMessage("Missing credentials. Username and password can be passed as request header or message body.");
+                response.setRespondeCode(RepsonseCode.CREDENTIALS_MISSING);
+                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+            }
+        }
         Optional<UserEntity> user = userRepository.findById(username);
         if(user.isPresent() &&
            user.get().getPassword().equals(HashService.MD5(password))){
