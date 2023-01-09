@@ -1,5 +1,6 @@
 package com.ph.rest.webservices.restfulwebservices.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.ph.model.PersonNotFoundException;
 import com.ph.persistence.model.AbsenceEntity;
 import com.ph.persistence.model.PersonEntity;
@@ -31,10 +32,12 @@ public class Absence {
 	@ApiModelProperty(position = 2, required = true, value = "1993-05-12")
 	@Getter
 	@Setter
+	@JsonFormat(shape = JsonFormat.Shape.STRING)
 	private java.sql.Date startDate;
 	@ApiModelProperty(position = 3, required = true, value = "1993-05-24")
 	@Getter
 	@Setter
+	@JsonFormat(shape = JsonFormat.Shape.STRING)
 	private java.sql.Date endDate;
 	@ApiModelProperty(position = 4, required = true, value = "2")
 	@Getter

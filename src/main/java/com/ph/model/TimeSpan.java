@@ -1,5 +1,6 @@
 package com.ph.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.time.DateUtils;
@@ -15,8 +16,10 @@ import java.util.List;
 public class TimeSpan {
 
     @Getter
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private final Date start;
     @Getter
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private final Date end;
 
     public boolean includes(Date date){

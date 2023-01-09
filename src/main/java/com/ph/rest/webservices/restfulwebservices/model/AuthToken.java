@@ -1,5 +1,6 @@
 package com.ph.rest.webservices.restfulwebservices.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,6 +15,7 @@ public class AuthToken {
 
     @Getter
     @Setter
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private LocalDateTime createdAt;
 
     @Getter
