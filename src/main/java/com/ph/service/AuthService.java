@@ -37,7 +37,7 @@ public class AuthService {
 
     public static boolean isTokenValid(String key){
         removeInvalidTokens();
-        return activeTokens.stream().anyMatch(x -> x.getTokenKey().equals(key));
+        return activeTokens.stream().anyMatch(x -> key.equals("Bearer "+x.getTokenKey()));
     }
 
     private static void removeInvalidTokens(){
