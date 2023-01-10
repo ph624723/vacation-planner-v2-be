@@ -3,10 +3,14 @@ package com.ph.rest.webservices.restfulwebservices.controller;
 import com.ph.model.PersonNotFoundException;
 import com.ph.persistence.model.AbsenceEntity;
 import com.ph.persistence.model.PersonEntity;
+import com.ph.persistence.model.UserEntity;
 import com.ph.persistence.repository.AbsenceJpaRepository;
 import com.ph.persistence.repository.PersonJpaRepository;
+import com.ph.persistence.repository.UserJpaRepository;
 import com.ph.rest.webservices.restfulwebservices.model.Absence;
 import com.ph.rest.webservices.restfulwebservices.model.Person;
+import com.ph.service.AuthService;
+import com.ph.service.HashService;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +22,7 @@ import org.springframework.web.servlet.ModelAndView;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Controller
@@ -29,6 +34,9 @@ public class ViewController {
 
     @Autowired
     AbsenceJpaRepository absenceJpaRepository;
+
+    @Autowired
+    UserJpaRepository userJpaRepository;
 
     @GetMapping(value = "/persons")
     public ModelAndView  allPersonsView(){
@@ -102,7 +110,8 @@ public class ViewController {
     }
 
     @PostMapping(value = "/absences")
-    public String updateAbsenceView(@ModelAttribute Absence absence, Model model){
+    public ModelAndView updateAbsenceView(@ModelAttribute Absence absence){
+        ModelAndView model = new ModelAndView("Absence/confirm");
         try {
             AbsenceEntity absenceEntity;
             if(absence.getId() != null) {
@@ -111,11 +120,11 @@ public class ViewController {
                 absenceEntity = absence.toEntity(null, personJpaRepository);
             }
             absenceJpaRepository.save(absenceEntity);
-            model.addAttribute("person", absenceEntity.getPerson());
+            model.addObject("person", absenceEntity.getPerson());
         }catch(PersonNotFoundException e){
-            return "redirect:/error";
+            return new ModelAndView("redirect:/error");
         }
-        return "Absence/confirm";
+        return model;
     }
 
     @GetMapping(value = "/absences/add")
@@ -135,5 +144,77 @@ public class ViewController {
         model.addObject("importanceLevels", importanceLevels);
 
         return model;
+    }
+
+    @GetMapping(value = "/home")
+    public ModelAndView  homeView(){
+
+        ModelAndView model = new ModelAndView("main");
+
+        return model;
+    }
+
+    @GetMapping(value = "/login")
+    public ModelAndView  loginView(
+            @RequestParam(required = false)
+            String redirect
+    ){
+        ModelAndView model = new ModelAndView("Generic/login");
+
+        Credentials credentials = new Credentials();
+        credentials.setRedirect(redirect);
+
+        model.addObject("credentials", credentials);
+
+        return model;
+    }
+
+    @PostMapping(value = "/login")
+    public ModelAndView  loginConfirm(@ModelAttribute Credentials credentials){
+        Optional<UserEntity> user = userJpaRepository.findById(credentials.username);
+        if(user.isPresent()){
+            if(user.get().getPassword().equals(HashService.MD5(credentials.password))){
+                ModelAndView model = new ModelAndView("redirect:"+ (credentials.getRedirect().isEmpty() ?
+                        "/view/persons" :
+                        credentials.getRedirect()));
+
+                //Login stuff
+
+                return model;
+            }else{
+                credentials.wrongPassword=true;
+                ModelAndView model = new ModelAndView("Generic/login");
+                model.addObject("credentials", credentials);
+                return model;
+            }
+        }else{
+            credentials.unknownUser=true;
+            ModelAndView model = new ModelAndView("Generic/login");
+            model.addObject("credentials", credentials);
+            return model;
+        }
+    }
+
+    class Credentials{
+        @Getter
+        @Setter
+        private String username;
+        @Getter
+        @Setter
+        private String password;
+        @Getter
+        @Setter
+        private String redirect;
+        @Getter
+        @Setter
+        private Boolean unknownUser;
+        @Getter
+        @Setter
+        private Boolean wrongPassword;
+
+        public Credentials(){
+            unknownUser = false;
+            wrongPassword = false;
+        }
     }
 }

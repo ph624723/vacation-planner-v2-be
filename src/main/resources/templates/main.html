@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+  <title id="pageTitle">Vacation Planner</title>
+
+  <link th:href="@{/assets/styles/main.css}" rel="stylesheet" />
+  <script type="text/javascript" th:src="@{/assets/js/main.js}"></script>
+</head>
+<body>
+<header th:insert="Generic/header :: header"> </header>
+<h1>Welcome</h1>
+<input type="button"
+       value="Login"
+       th:onclick="'javascript:openLogin(\''+'/view/home'+'\');'"/>
+</body>
+</html>
