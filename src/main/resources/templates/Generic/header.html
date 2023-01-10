@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="headerFragment">
+  <title th:include=":: #pageTitle">Layout Generic Title</title>
+
+</head>
+<body>
+<div class="topnav" th:fragment="header">
+  <div>
+    <p>Vacation Planner V2</p>
+  </div>
+  <div>
+    <a class="active" href="/swagger-ui.html">Home</a>
+    <a href="/view/persons">Persons</a>
+    <a href="/view/absences">Absences</a>
+  </div>
+</div>
+</body>
+</html>

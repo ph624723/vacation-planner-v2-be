@@ -56,5 +56,8 @@ public class SwaggerConfig implements WebMvcConfigurer {
 
         registry.addResourceHandler("/webjars/**")
                 .addResourceLocations("classpath:/META-INF/resources/webjars/");
+        if (!registry.hasMappingForPattern("/assets/**")) {
+            registry.addResourceHandler("/assets/**").addResourceLocations("classpath:/assets/");
+        }
     }
 }

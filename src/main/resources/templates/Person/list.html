@@ -2,14 +2,13 @@
 <html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
-    <title>Person Register</title>
-    <script>
-        function rowClicked(value) {
-            location.href = "/view/absences?personId=" + value;
-        }
-    </script>
+    <title id="pageTitle">Person Register</title>
+
+    <link th:href="@{/assets/styles/main.css}" rel="stylesheet" />
+    <script type="text/javascript" th:src="@{/assets/js/main.js}"></script>
 </head>
 <body>
+<header th:insert="Generic/header :: header"> </header>
 <h1>Person Register</h1>
 <table>
     <thead>
@@ -23,7 +22,7 @@
         <td colspan="2"> No Person Available </td>
     </tr>
     <tr th:each="person : ${persons}" style="cursor: pointer"
-        th:onclick="'javascript:rowClicked(\'' + ${person.id} + '\');'">
+        th:onclick="'javascript:gotoAbsencesForPerson(\'' + ${person.id} + '\');'">
         <td><span th:text="${person.name}"> Name </span></td>
         <td><span th:text="${person.contact}"> Contact Info </span></td>
     </tr>
