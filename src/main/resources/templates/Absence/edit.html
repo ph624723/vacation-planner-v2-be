@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="'Edit Absences'"> Title </title>
+</head>
+<body>
+<h1 th:text="'Edit Absence'"> Title </h1>
+
+<form
+        th:action="@{/view/absences}"
+        th:object="${absence}"
+        method="post">
+
+    <p>
+        Person: <select
+            class="form-control"
+            th:field="*{personId}">
+            <option th:each="person : ${availablePersons}" th:value="${person.id}" th:text="${person.name}"></option>
+        </select>
+    </p>
+    <p>
+        Description: <input
+            type="text"
+            th:field="*{description}"/>
+    </p>
+    <p>
+        Start: <input
+            type="date"
+            th:field="*{startDate}"/>
+    </p>
+    <p>
+        End: <input
+            type="date"
+            th:field="*{endDate}"/>
+    </p>
+    <p>
+        <input
+            type="hidden"
+            th:field="*{id}"/>
+    </p>
+    <p>
+        Importance: <select
+            class="form-control"
+            th:field="*{level}">
+            <option th:each="level : ${importanceLevels}" th:value="${level.level}" th:text="${level}"></option>
+        </select>
+    </p>
+    <p>
+        <input type="submit" value="Submit"/>
+    </p>
+</form>
+
+</body>
+</html>

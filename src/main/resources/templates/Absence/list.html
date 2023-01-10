@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="'Absences for '+${titleText}"> Title </title>
+    <script>
+        function rowClicked(value) {
+            location.href = "/view/absences/edit?absenceId=" + value;
+        }
+        function addClicked(value) {
+            location.href = "/view/absences/add?personId=" + value;
+        }
+        function editClicked(value) {
+            location.href = "/view/persons/edit?personId=" + value;
+        }
+    </script>
+</head>
+<body>
+<h1 th:text="'Absences for '+${titleText}"> Title </h1>
+<table>
+    <thead>
+    <tr>
+        <th th:if="${personId == -1}"> Person</th>
+        <th> Start </th>
+        <th> End </th>
+        <th> Description </th>
+        <th> Importance Level </th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:if="${absences.empty}">
+        <td colspan="2"> No Absence Available </td>
+    </tr>
+    <tr th:each="absence : ${absences}" style="cursor: pointer"
+        th:onclick="'javascript:rowClicked(\'' + ${absence.id} + '\');'">
+        <td th:if="${personId == -1}" ><span th:text="${absence.person.name}"> Importance </span></td>
+        <td><span th:text="${absence.startDate}"> Start </span></td>
+        <td><span th:text="${absence.endDate}"> End </span></td>
+        <td><span th:text="${absence.description}"> Description </span></td>
+        <td><span th:text="${absence.importance}"> Importance </span></td>
+    </tr>
+    </tbody>
+</table>
+<p>
+    <input type="button"
+           value="Add"
+           th:onclick="'javascript:addClicked(\'' + ${personId} + '\');'"/>
+    <input th:if="${personId != -1}"
+           type="button"
+           value="Edit Person"
+           th:onclick="'javascript:editClicked(\'' + ${personId} + '\');'"/>
+</p>
+
+</body>
+</html>

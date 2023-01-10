@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Person Register</title>
+    <script>
+        function rowClicked(value) {
+            location.href = "/view/absences?personId=" + value;
+        }
+    </script>
+</head>
+<body>
+<h1>Person Register</h1>
+<table>
+    <thead>
+    <tr>
+        <th> Name </th>
+        <th> Contact </th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:if="${persons.empty}">
+        <td colspan="2"> No Person Available </td>
+    </tr>
+    <tr th:each="person : ${persons}" style="cursor: pointer"
+        th:onclick="'javascript:rowClicked(\'' + ${person.id} + '\');'">
+        <td><span th:text="${person.name}"> Name </span></td>
+        <td><span th:text="${person.contact}"> Contact Info </span></td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

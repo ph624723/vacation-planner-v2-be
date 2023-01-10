@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="'Edit Persons'"> Title </title>
+</head>
+<body>
+<h1 th:text="'Edit Person'"> Title </h1>
+<h3>Person has been stored</h3>
+<p>
+    <a href="/view/persons">Return to Overview</a>
+</p>
+<p>
+    <a th:href="'/view/absences?personId='+${person.id}"
+       th:text="'Return to absences for '+${person.name}">
+        Text
+    </a>
+</p>
+</body>
+</html>
