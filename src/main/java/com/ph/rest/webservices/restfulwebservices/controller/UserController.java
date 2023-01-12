@@ -58,16 +58,19 @@ public class UserController implements IRootController<User,String>{
 	public ResponseEntity<UserResponse> get(String id,
 											String username,
 											String password){
-		if(!authenticateRootUser(username,password)){
+		if(!(authenticateRootUser(username,password) || authenticateOwnUser(username,password,id))){
 			UserResponse response = new UserResponse();
 			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
-			response.setMessage(rootUserErrorText);
+			response.setMessage("Only the owned user can be edited without root privileges");
 			response.setUser(null);
 			return new ResponseEntity<>(response,HttpStatus.UNAUTHORIZED);
 		}
 
 		if(repository.existsById(id)){
 			User user = User.fromEntity(repository.findById(id).orElse(null));
+			if(!authenticateRootUser(username,password)){
+				user.setPassword("");
+			}
 
 			UserResponse response = new UserResponse();
 			response.setRespondeCode(RepsonseCode.OK);

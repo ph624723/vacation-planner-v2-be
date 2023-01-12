@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title th:text="'Change Password'"> Title </title>
+</head>
+<body>
+<h1 th:text="'Change Password'"> Title </h1>
+
+<form
+        th:action="@{/view/changePassword}"
+        th:object="${credentials}"
+        method="post">
+  <p>
+    Current password: <input
+          type="password"
+          th:field="*{password}"/>
+  </p>
+  <p>
+    New password: <input
+          type="password"
+          th:field="*{newPassword}"/>
+  </p>
+  <p>
+    Repeat password: <input
+          type="password"
+          th:field="*{newPassword2}"/>
+  </p>
+  <p>
+    <input type="submit" value="Submit"/>
+  </p>
+  <p th:if="${credentials.wrongPassword}">
+    Wrong username or password
+  </p>
+  <p th:if="${credentials.unequalPassword}">
+    New password fields do not match
+  </p>
+</form>
+
+</body>
+</html>

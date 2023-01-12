@@ -8,12 +8,15 @@ import com.ph.persistence.repository.AbsenceJpaRepository;
 import com.ph.persistence.repository.PersonJpaRepository;
 import com.ph.persistence.repository.UserJpaRepository;
 import com.ph.rest.webservices.restfulwebservices.model.Absence;
+import com.ph.rest.webservices.restfulwebservices.model.LoginCredentials;
 import com.ph.rest.webservices.restfulwebservices.model.Person;
 import com.ph.service.AuthService;
 import com.ph.service.HashService;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -109,6 +112,18 @@ public class ViewController {
         return model;
     }
 
+    @GetMapping(value = "/absences/delete")
+    public ModelAndView  deleteAbsenceView(
+            @RequestParam(required = true)
+            Long absenceId
+    ){
+
+        absenceJpaRepository.deleteById(absenceId);
+        ModelAndView model = new ModelAndView("redirect:/view/absences");
+
+        return model;
+    }
+
     @PostMapping(value = "/absences")
     public ModelAndView updateAbsenceView(@ModelAttribute Absence absence){
         ModelAndView model = new ModelAndView("Absence/confirm");
@@ -154,67 +169,42 @@ public class ViewController {
         return model;
     }
 
-    @GetMapping(value = "/login")
-    public ModelAndView  loginView(
-            @RequestParam(required = false)
-            String redirect
-    ){
-        ModelAndView model = new ModelAndView("Generic/login");
+    @GetMapping(value = "/changePassword")
+    public ModelAndView  changePwView(){
+        ModelAndView model = new ModelAndView("Generic/changePw");
 
-        Credentials credentials = new Credentials();
-        credentials.setRedirect(redirect);
+        LoginCredentials credentials = new LoginCredentials();
 
         model.addObject("credentials", credentials);
 
         return model;
     }
+    @PostMapping(value = "/changePassword")
+    public ModelAndView  processNewPw(@ModelAttribute LoginCredentials credentials){
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username = ((UserDetails)principal).getUsername();
 
-    @PostMapping(value = "/login")
-    public ModelAndView  loginConfirm(@ModelAttribute Credentials credentials){
-        Optional<UserEntity> user = userJpaRepository.findById(credentials.username);
-        if(user.isPresent()){
-            if(user.get().getPassword().equals(HashService.MD5(credentials.password))){
-                ModelAndView model = new ModelAndView("redirect:"+ (credentials.getRedirect().isEmpty() ?
-                        "/view/persons" :
-                        credentials.getRedirect()));
+        UserEntity user = userJpaRepository.findById(username).get();
+        if(user.getPassword().equals(HashService.MD5(credentials.getPassword()))){
 
-                //Login stuff
+            if(credentials.getNewPassword().equals(credentials.getNewPassword2())){
+                user.setPassword(HashService.MD5(credentials.getNewPassword()));
+                userJpaRepository.save(user);
 
+                ModelAndView model = new ModelAndView("redirect:/view/home");
                 return model;
             }else{
-                credentials.wrongPassword=true;
-                ModelAndView model = new ModelAndView("Generic/login");
+                credentials.setUnequalPassword(true);
+                ModelAndView model = new ModelAndView("Generic/changePw");
                 model.addObject("credentials", credentials);
                 return model;
             }
         }else{
-            credentials.unknownUser=true;
-            ModelAndView model = new ModelAndView("Generic/login");
+            credentials.setWrongPassword(true);
+            ModelAndView model = new ModelAndView("Generic/changePw");
             model.addObject("credentials", credentials);
             return model;
         }
     }
 
-    class Credentials{
-        @Getter
-        @Setter
-        private String username;
-        @Getter
-        @Setter
-        private String password;
-        @Getter
-        @Setter
-        private String redirect;
-        @Getter
-        @Setter
-        private Boolean unknownUser;
-        @Getter
-        @Setter
-        private Boolean wrongPassword;
-
-        public Credentials(){
-            unknownUser = false;
-            wrongPassword = false;
-        }
-    }
 }

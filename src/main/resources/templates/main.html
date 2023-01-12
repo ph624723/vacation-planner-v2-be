@@ -1,17 +1,33 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
   <meta charset="UTF-8">
   <title id="pageTitle">Vacation Planner</title>
 
-  <link th:href="@{/assets/styles/main.css}" rel="stylesheet" />
-  <script type="text/javascript" th:src="@{/assets/js/main.js}"></script>
+  <script>
+    function openLogin() {
+      location.href = "/login";
+    }
+    function openLogout() {
+      location.href = "/perform_logout";
+    }
+    function openChangePassword() {
+      location.href = "/view/changePassword";
+    }
+  </script>
 </head>
 <body>
 <header th:insert="Generic/header :: header"> </header>
-<h1>Welcome</h1>
-<input type="button"
-       value="Login"
-       th:onclick="'javascript:openLogin(\''+'/view/home'+'\');'"/>
+<h2>Welcome</h2>
+<div sec:authorize="isAnonymous()">
+  <input type="button"
+         value="Login"
+         th:onclick="'javascript:openLogin(\''+'/view/home'+'\');'"/>
+</div>
+<div sec:authorize="isAuthenticated()">
+  <input type="button"
+         value="Change password"
+         th:onclick="'javascript:openChangePassword();'"/>
+</div>
 </body>
 </html>

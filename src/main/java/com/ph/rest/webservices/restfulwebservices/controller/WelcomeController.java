@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class WelcomeController {
 
     @ApiOperation(value = "Basic redirect to bring new users to the Swagger doc")
-    @GetMapping("/")
+    @GetMapping(value={"/","/welcome"})
     public String welcome(){
         //return new ResponseEntity<String>("Nothing to see here. Go to /swagger-ui.html for documentation of available endpoints.", HttpStatus.OK);
-        return "redirect:/swagger-ui.html";
+        return "redirect:/view/home";
     }
 }

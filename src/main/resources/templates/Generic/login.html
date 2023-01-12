@@ -8,7 +8,7 @@
 <h1 th:text="'Login'"> Title </h1>
 
 <form
-        th:action="@{/view/login}"
+        th:action="@{/login}"
         th:object="${credentials}"
         method="post">
   <p>
@@ -22,18 +22,10 @@
           th:field="*{password}"/>
   </p>
   <p>
-    <input
-            type="hidden"
-            th:field="*{redirect}"/>
-  </p>
-  <p>
     <input type="submit" value="Submit"/>
   </p>
-  <p th:if="${credentials.unknownUser}">
-    wrongUser
-  </p>
   <p th:if="${credentials.wrongPassword}">
-    wrongPassword
+    Wrong username or password
   </p>
 </form>
 

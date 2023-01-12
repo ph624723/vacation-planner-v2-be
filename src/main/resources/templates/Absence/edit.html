@@ -3,6 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title th:text="'Edit Absences'"> Title </title>
+    <script>
+        function opendelete(value) {
+            location.href = "/view/absences/delete?absenceId="+value;
+        }
+    </script>
 </head>
 <body>
 <h1 th:text="'Edit Absence'"> Title </h1>
@@ -48,6 +53,9 @@
     </p>
     <p>
         <input type="submit" value="Submit"/>
+        <input type="button"
+               value="Delete absence"
+               th:onclick="'javascript:opendelete(\'' + ${absence.id} + '\');'"/>
     </p>
 </form>
 
