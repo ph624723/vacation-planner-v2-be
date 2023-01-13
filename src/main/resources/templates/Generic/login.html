@@ -8,32 +8,45 @@
   <div th:replace="index :: drawerContent"> </div>
   <div class="android-content mdl-layout__content">
 
-    <p th:if="${credentials.logout}">
-      Logout successful
-    </p>
-    <h2 th:text="'Login'"> Title </h2>
-    <div class="demo-graphs mdl-shadow--2dp mdl-color--white mdl-cell mdl-cell--8-col">
-      <form th:action="@{/login}"
-            th:object="${credentials}"
-            method="post">
-        <p>
-          Username: <input
-                type="text"
-                th:field="*{username}"/>
-        </p>
-        <p>
-          Password: <input
-                type="password"
-                th:field="*{password}"/>
-        </p>
-        <button type="submit"
-                class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
-          Submit
-        </button>
-        <p th:if="${credentials.wrongPassword}">
-          Wrong username or password
-        </p>
-      </form>
+    <div class="android-screen-section mdl-typography--text-center">
+      <p class="mdl-typography--headline mdl-typography--font-thin"
+         th:if="${credentials.logout}">
+        Logout successful
+      </p>
+      <div class="mdl-typography--display-1-color-contrast">Sign In</div>
+    </div>
+    <div class="demo-graphs mdl-shadow--2dp mdl-color--white mdl-cell mdl-cell--8-col centerLogin">
+      <div>
+        <form th:action="@{/login}"
+              th:object="${credentials}"
+              method="post">
+          <p>
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+              <input class="mdl-textfield__input"
+                     type="text"
+                     th:field="*{username}"
+                     id="usernameField">
+              <label class="mdl-textfield__label" for="usernameField">Username</label>
+            </div>
+          </p>
+          <p>
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+              <input class="mdl-textfield__input"
+                     type="password"
+                     th:field="*{password}"
+                     id="passwordField">
+              <label class="mdl-textfield__label" for="passwordField">Password</label>
+            </div>
+          </p>
+          <button type="submit"
+                  class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
+            Submit
+          </button>
+          <p th:if="${credentials.wrongPassword}">
+            Wrong username or password
+          </p>
+        </form>
+      </div>
     </div>
 
   </div>
