@@ -69,7 +69,8 @@
           <!-- Add spacer, to align navigation to the right in desktop -->
           <div class="android-header-spacer mdl-layout-spacer"></div>
           <!-- Navigation -->
-          <div class="android-navigation-container">
+          <div class="android-navigation-container"
+               th:if="false">
             <nav class="android-navigation mdl-navigation">
               <a class="mdl-navigation__link mdl-typography--text-uppercase" href="/view/home">
                 <i class="mdl-color-text--blue-grey-400 material-icons" role="presentation">
@@ -118,9 +119,15 @@
           <a class="mdl-navigation__link" href="/view/home">Home</a>
           <a class="mdl-navigation__link" href="/view/persons">Persons</a>
           <a class="mdl-navigation__link" href="/view/absences">Absences</a>
-          <div class="android-drawer-separator"></div>
-          <span class="mdl-navigation__link">Documentation</span>
-          <a class="mdl-navigation__link" href="/swagger-ui.html">Swagger Documentation</a>
+          <div class="android-drawer-separator"
+               sec:authorize="isAuthenticated()"></div>
+          <span class="mdl-navigation__link"
+                sec:authorize="isAuthenticated()">Documentation</span>
+          <a class="mdl-navigation__link"
+             href="/swagger-ui.html"
+             sec:authorize="isAuthenticated()">
+            Swagger Documentation
+          </a>
           <div class="android-drawer-separator"></div>
           <span class="mdl-navigation__link">User Settings</span>
           <a class="mdl-navigation__link"
