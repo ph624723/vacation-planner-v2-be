@@ -3,8 +3,8 @@
 <html lang="en"
       xmlns:sec="http://www.w3.org/1999/xhtml"
       th:fragment="header">
-  <head th:fragment="head">
-    <title>Vacation Planner</title>
+  <head th:fragment="head (titleText)">
+    <title th:text="${titleText}"></title>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="description" content="Introducing Lollipop, a sweet new take on Android.">
