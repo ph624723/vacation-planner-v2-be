@@ -12,13 +12,18 @@ public class LoginController {
     @GetMapping(value = "/login")
     public ModelAndView loginView(
             @RequestParam(required = false)
-            String error
+            String error,
+            @RequestParam(required = false)
+            String logout
     ){
         ModelAndView model = new ModelAndView("Generic/login");
 
         LoginCredentials credentials = new LoginCredentials();
         if(error != null){
             credentials.setWrongPassword(true);
+        }
+        if(logout != null){
+            credentials.setLogout(true);
         }
 
         model.addObject("credentials", credentials);

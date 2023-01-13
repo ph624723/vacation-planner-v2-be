@@ -1,63 +1,65 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="https://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title th:text="'Edit Absences'"> Title </title>
-    <script>
-        function opendelete(value) {
-            location.href = "/view/absences/delete?absenceId="+value;
-        }
-    </script>
+<head th:insert="index :: head">
 </head>
 <body>
-<h1 th:text="'Edit Absence'"> Title </h1>
+<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+    <div th:replace="index :: headerContent"> </div>
+    <div th:replace="index :: drawerContent"> </div>
+    <div class="android-content mdl-layout__content">
 
-<form
-        th:action="@{/view/absences}"
-        th:object="${absence}"
-        method="post">
+        <h2 th:text="'Edit Absence'"> Title </h2>
 
-    <p>
-        Person: <select
-            class="form-control"
-            th:field="*{personId}">
-            <option th:each="person : ${availablePersons}" th:value="${person.id}" th:text="${person.name}"></option>
-        </select>
-    </p>
-    <p>
-        Description: <input
-            type="text"
-            th:field="*{description}"/>
-    </p>
-    <p>
-        Start: <input
-            type="date"
-            th:field="*{startDate}"/>
-    </p>
-    <p>
-        End: <input
-            type="date"
-            th:field="*{endDate}"/>
-    </p>
-    <p>
-        <input
-            type="hidden"
-            th:field="*{id}"/>
-    </p>
-    <p>
-        Importance: <select
-            class="form-control"
-            th:field="*{level}">
-            <option th:each="level : ${importanceLevels}" th:value="${level.level}" th:text="${level}"></option>
-        </select>
-    </p>
-    <p>
-        <input type="submit" value="Submit"/>
-        <input type="button"
-               value="Delete absence"
-               th:onclick="'javascript:opendelete(\'' + ${absence.id} + '\');'"/>
-    </p>
-</form>
+        <form
+                th:action="@{/view/absences}"
+                th:object="${absence}"
+                method="post">
 
+            <p>
+                Person: <select
+                    class="form-control"
+                    th:field="*{personId}">
+                <option th:each="person : ${availablePersons}" th:value="${person.id}" th:text="${person.name}"></option>
+            </select>
+            </p>
+            <p>
+                Description: <input
+                    type="text"
+                    th:field="*{description}"/>
+            </p>
+            <p>
+                Start: <input
+                    type="date"
+                    th:field="*{startDate}"/>
+            </p>
+            <p>
+                End: <input
+                    type="date"
+                    th:field="*{endDate}"/>
+            </p>
+            <p>
+                <input
+                        type="hidden"
+                        th:field="*{id}"/>
+            </p>
+            <p>
+                Importance: <select
+                    class="form-control"
+                    th:field="*{level}">
+                <option th:each="level : ${importanceLevels}" th:value="${level.level}" th:text="${level}"></option>
+            </select>
+            </p>
+            <p>
+                <input type="submit" value="Submit"/>
+                <input type="button"
+                       value="Delete absence"
+                       th:onclick="'javascript:openDeleteAbsence(\'' + ${absence.id} + '\');'"/>
+            </p>
+        </form>
+
+    </div>
+</div>
+<script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
 </body>
 </html>
+

@@ -1,0 +1,151 @@
+<!doctype html>
+
+<html lang="en"
+      xmlns:sec="http://www.w3.org/1999/xhtml"
+      th:fragment="header">
+  <head th:fragment="head">
+    <title>Vacation Planner</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="Introducing Lollipop, a sweet new take on Android.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+
+    <!-- Page styles -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.min.css">
+    <script>
+      function openSwaggerDoc() {
+        location.href = "/swagger-ui.html";
+      }
+      function openChangePassword() {
+        location.href = "/view/changePassword";
+      }
+      function openLogin() {
+        location.href = "/login";
+      }
+      function openLogout() {
+        location.href = "/perform_logout";
+      }
+      function openHomeView() {
+        location.href = "/view/home";
+      }
+      function openEditAbsence(value) {
+        location.href = "/view/absences/edit?absenceId=" + value;
+      }
+      function openAddAbsence(value) {
+        location.href = "/view/absences/add?personId=" + value;
+      }
+      function openEditPerson(value) {
+        location.href = "/view/persons/edit?personId=" + value;
+      }
+      function openAbsencesForPerson(value) {
+        location.href = "/view/absences?personId=" + value;
+      }
+      function openDeleteAbsence(value) {
+        location.href = "/view/absences/delete?absenceId="+value;
+      }
+    </script>
+    <style>
+      .android-drawer-separator {
+        height: 1px;
+        background-color: #dcdcdc;
+        margin: 8px 0;
+      }
+      .android-drawer span.mdl-navigation__link.mdl-navigation__link {
+        color: #8bc34a;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+      <div class="android-header mdl-layout__header mdl-layout__header--waterfall"
+           th:fragment="headerContent">
+        <div class="mdl-layout__header-row">
+          <span class="android-title mdl-layout-title"
+                th:onclick="'javascript:openHomeView();'">
+            Vacation Planner V2
+          </span>
+          <!-- Add spacer, to align navigation to the right in desktop -->
+          <div class="android-header-spacer mdl-layout-spacer"></div>
+          <!-- Navigation -->
+          <div class="android-navigation-container">
+            <nav class="android-navigation mdl-navigation">
+              <a class="mdl-navigation__link mdl-typography--text-uppercase" href="/view/home">
+                <i class="mdl-color-text--blue-grey-400 material-icons" role="presentation">
+                  home
+                </i>
+                Home
+              </a>
+              <a class="mdl-navigation__link mdl-typography--text-uppercase" href="/view/persons">Persons</a>
+              <a class="mdl-navigation__link mdl-typography--text-uppercase" href="/view/absences">Absences</a>
+            </nav>
+          </div>
+          <button class="android-more-button mdl-button mdl-js-button mdl-button--icon mdl-js-ripple-effect" id="more-button">
+            <i class="material-icons">more_vert</i>
+          </button>
+          <ul class="mdl-menu mdl-js-menu mdl-menu--bottom-right mdl-js-ripple-effect" for="more-button">
+            <li class="mdl-menu__item"
+                sec:authorize="isAuthenticated()"
+                th:onclick="'javascript:openSwaggerDoc();'">
+              Swagger Documentation
+            </li>
+            <li class="mdl-menu__item"
+                sec:authorize="isAuthenticated()"
+                th:onclick="'javascript:openChangePassword();'">
+              Change Password
+            </li>
+            <li class="mdl-menu__item"
+                sec:authorize="isAuthenticated()"
+                th:onclick="'javascript:openLogout();'">
+              Logout
+            </li>
+            <li class="mdl-menu__item"
+                sec:authorize="isAnonymous()"
+                th:onclick="'javascript:openLogin();'">
+              Sign-In
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="android-drawer mdl-layout__drawer"
+           th:fragment="drawerContent">
+        <span class="mdl-layout-title">
+          Vacation Planner
+        </span>
+        <nav class="mdl-navigation">
+          <a class="mdl-navigation__link" href="/view/home">Home</a>
+          <a class="mdl-navigation__link" href="/view/persons">Persons</a>
+          <a class="mdl-navigation__link" href="/view/absences">Absences</a>
+          <div class="android-drawer-separator"></div>
+          <span class="mdl-navigation__link">Documentation</span>
+          <a class="mdl-navigation__link" href="/swagger-ui.html">Swagger Documentation</a>
+          <div class="android-drawer-separator"></div>
+          <span class="mdl-navigation__link">User Settings</span>
+          <a class="mdl-navigation__link"
+             href="/login"
+             sec:authorize="isAnonymous()">
+            Sign In
+          </a>
+          <a class="mdl-navigation__link"
+             href="/view/changePassword"
+             sec:authorize="isAuthenticated()">
+            Change Password
+          </a>
+          <a class="mdl-navigation__link"
+             href="/perform_logout"
+             sec:authorize="isAuthenticated()">
+            Sign Out
+          </a>
+        </nav>
+      </div>
+
+      <div class="android-content mdl-layout__content">
+
+
+      </div>
+    </div>
+    <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+  </body>
+</html>

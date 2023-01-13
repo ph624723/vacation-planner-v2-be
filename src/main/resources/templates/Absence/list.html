@@ -1,56 +1,61 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
-<head>
-    <meta charset="UTF-8">
+<head th:insert="index :: head">
     <title th:text="'Absences for '+${titleText}"> Title </title>
-    <script>
-        function rowClicked(value) {
-            location.href = "/view/absences/edit?absenceId=" + value;
-        }
-        function addClicked(value) {
-            location.href = "/view/absences/add?personId=" + value;
-        }
-        function editClicked(value) {
-            location.href = "/view/persons/edit?personId=" + value;
-        }
-    </script>
 </head>
 <body>
-<header th:insert="Generic/header :: header"> </header>
-<h1 th:text="'Absences for '+${titleText}"> Title </h1>
-<table>
-    <thead>
-    <tr>
-        <th th:if="${personId == -1}"> Person</th>
-        <th> Start </th>
-        <th> End </th>
-        <th> Description </th>
-        <th> Importance Level </th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:if="${absences.empty}">
-        <td colspan="2"> No Absence Available </td>
-    </tr>
-    <tr th:each="absence : ${absences}" style="cursor: pointer"
-        th:onclick="'javascript:rowClicked(\'' + ${absence.id} + '\');'">
-        <td th:if="${personId == -1}" ><span th:text="${absence.person.name}"> Importance </span></td>
-        <td><span th:text="${absence.startDate}"> Start </span></td>
-        <td><span th:text="${absence.endDate}"> End </span></td>
-        <td><span th:text="${absence.description}"> Description </span></td>
-        <td><span th:text="${absence.importance}"> Importance </span></td>
-    </tr>
-    </tbody>
-</table>
-<p>
-    <input type="button"
-           value="Add"
-           th:onclick="'javascript:addClicked(\'' + ${personId} + '\');'"/>
-    <input th:if="${personId != -1}"
-           type="button"
-           value="Edit Person"
-           th:onclick="'javascript:editClicked(\'' + ${personId} + '\');'"/>
-</p>
+<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+    <div th:replace="index :: headerContent"> </div>
+    <div th:replace="index :: drawerContent"> </div>
+    <div class="android-content mdl-layout__content">
 
+        <h2 th:text="'Absences for '+${titleText}"> Title </h2>
+        <table>
+            <thead>
+            <tr>
+                <th th:if="${personId == -1}"> Person</th>
+                <th> Start </th>
+                <th> End </th>
+                <th> Description </th>
+                <th> Importance Level </th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${absences.empty}">
+                <td colspan="2"> No Absence Available </td>
+            </tr>
+            <tr th:each="absence : ${absences}" style="cursor: pointer"
+                th:onclick="'javascript:openEditAbsence(\'' + ${absence.id} + '\');'">
+                <td th:if="${personId == -1}" ><span th:text="${absence.person.name}"> Importance </span></td>
+                <td><span th:text="${absence.startDate}"> Start </span></td>
+                <td><span th:text="${absence.endDate}"> End </span></td>
+                <td><span th:text="${absence.description}"> Description </span></td>
+                <td><span th:text="${absence.importance}"> Importance </span></td>
+            </tr>
+            </tbody>
+        </table>
+        <p>
+            <button type="button"
+                    th:if="${personId != -1}"
+                    class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+                    th:onclick="'javascript:openEditPerson(\'' + ${personId} + '\');'">
+                Edit Person
+            </button>
+            <button type="button"
+                    class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+                    th:onclick="'javascript:openAddAbsence(\'' + ${personId} + '\');'">
+                Add
+            </button>
+            <button type="button"
+                    class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored"
+                    th:onclick="'javascript:openAddAbsence(\'' + ${personId} + '\');'">
+                <i class="material-icons">add</i>
+            </button>
+        </p>
+
+
+    </div>
+</div>
+<script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
 </body>
 </html>

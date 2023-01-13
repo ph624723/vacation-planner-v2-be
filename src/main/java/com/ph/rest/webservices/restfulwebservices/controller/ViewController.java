@@ -150,7 +150,7 @@ public class ViewController {
         ModelAndView model = new ModelAndView("Absence/edit");
 
         Absence absence = new Absence();
-        if(personId != -1) absence.setPersonId(personId);
+        if(personId != null && personId != -1) absence.setPersonId(personId);
         List<PersonEntity> availablePersons = personJpaRepository.findAll();
         List<AbsenceEntity.Importance> importanceLevels = Arrays.asList(AbsenceEntity.Importance.values());
 
@@ -167,6 +167,16 @@ public class ViewController {
         ModelAndView model = new ModelAndView("main");
 
         return model;
+    }
+
+    @GetMapping(value = "/index")
+    public ModelAndView  indexView(){
+        return new ModelAndView("index");
+    }
+
+    @GetMapping(value = "/index-o")
+    public ModelAndView  indexOView(){
+        return new ModelAndView("index-original");
     }
 
     @GetMapping(value = "/changePassword")

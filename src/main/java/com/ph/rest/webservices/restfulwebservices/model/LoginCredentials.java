@@ -22,8 +22,14 @@ public class LoginCredentials{
     @Getter
     @Setter
     private Boolean unequalPassword;
+    @Getter
+    @Setter
+    private Boolean logout;
 
     public LoginCredentials(){
+
         wrongPassword = false;
+        unequalPassword = false;
+        logout=false;
     }
 }
