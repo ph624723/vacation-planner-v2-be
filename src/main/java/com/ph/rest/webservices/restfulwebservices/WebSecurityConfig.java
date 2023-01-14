@@ -30,7 +30,8 @@ public class WebSecurityConfig  extends WebSecurityConfigurerAdapter {
                     "/persons/**",
                     "/absences/**",
                     "/users/**",
-                    "/auth/**").permitAll()
+                    "/auth/**",
+                    "/register/**").permitAll()
             .anyRequest().authenticated()
             .and()
             .formLogin()

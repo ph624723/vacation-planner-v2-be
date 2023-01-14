@@ -23,6 +23,16 @@ public class AuthService {
         if((activeTokens.size()+1)>maxConcurrentSessions)
             throw new ToManySessionsException();
 
+        AuthToken token = new AuthToken();
+        token.setTokenKey(generatePassword(password));
+        token.setCreatedAt(LocalDateTime.now());
+        token.setExpiresAt(token.getCreatedAt().plus(tokenLifetime));
+        token.setTokenType("Bearer");
+        activeTokens.add(token);
+        return token;
+    }
+
+    public static String generatePassword(String password){
         long hash = LocalDateTime.now().hashCode();
         for (char c : password.toCharArray()) {
             hash = 31L*hash + c;
@@ -35,13 +45,7 @@ public class AuthService {
         }
         key = key.replace("\\","").replaceAll("[\\'\\\"]","");
         //key = "Bearer "+key;
-        AuthToken token = new AuthToken();
-        token.setTokenKey(key);
-        token.setCreatedAt(LocalDateTime.now());
-        token.setExpiresAt(token.getCreatedAt().plus(tokenLifetime));
-        token.setTokenType("Bearer");
-        activeTokens.add(token);
-        return token;
+        return key;
     }
 
     public static boolean isTokenValid(String key){

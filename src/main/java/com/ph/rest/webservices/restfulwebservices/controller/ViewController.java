@@ -42,9 +42,6 @@ public class ViewController {
     @Autowired
     UserJpaRepository userJpaRepository;
 
-    @Autowired
-    EmailServiceImpl emailService;
-
     @GetMapping(value = "/persons")
     public ModelAndView  allPersonsView(){
         ModelAndView model = new ModelAndView("Person/list");
@@ -184,7 +181,6 @@ public class ViewController {
 
     @GetMapping(value = "/index")
     public ModelAndView  indexView(){
-        System.out.println(emailService.sendSimpleMail("phegerp@gmail.com","test: "+ LocalTime.now().toString(),"Testmessage"));
         return new ModelAndView("index");
     }
 

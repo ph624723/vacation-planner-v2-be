@@ -177,6 +177,11 @@
             Sign In
           </a>
           <a class="mdl-navigation__link"
+             href="/register"
+             sec:authorize="isAnonymous()">
+            Sign Up
+          </a>
+          <a class="mdl-navigation__link"
              href="/view/changePassword"
              sec:authorize="isAuthenticated()">
             Change Password

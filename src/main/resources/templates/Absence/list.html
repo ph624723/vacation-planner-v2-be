@@ -46,7 +46,7 @@
                     </thead>
                     <tbody>
                     <tr th:if="${absences.empty}">
-                        <td colspan="4"> No Absence Available </td>
+                        <td colspan="2"> No Absence Available </td>
                     </tr>
                     <tr th:each="absence : ${absences}" style="cursor: pointer"
                         th:onclick="'javascript:openEditAbsence(\'' + ${absence.id} + '\');'">
