@@ -65,6 +65,14 @@ public class AbsenceEntity {
 		return new TimeSpan(startDate,endDate);
 	}
 
+	public AbsenceEntity trimDescription(){
+		if(description.length() > 20) {
+			description = description.substring(0, 17) + "...";
+		}
+		return this;
+	}
+
+
 	public enum Importance {
 		High(3),
 		Medium(2),

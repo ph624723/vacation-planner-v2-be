@@ -26,10 +26,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.validation.Valid;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -96,6 +93,8 @@ public class ViewController {
             titleText = person.getName();
         }
 
+        absences = absences.stream().map(x -> x.trimDescription()).sorted(Comparator.comparing(AbsenceEntity::getStartDate)).collect(Collectors.toList());
+
         model.addObject("absences", absences);
         model.addObject("titleText", titleText);
         model.addObject("person", person);
@@ -136,6 +135,11 @@ public class ViewController {
     @PostMapping(value = "/absences")
     public ModelAndView updateAbsenceView(@ModelAttribute Absence absence){
         ModelAndView model = new ModelAndView("Absence/confirm");
+        if(absence.getStartDate().compareTo(absence.getEndDate()) > 0){
+            java.sql.Date start = absence.getEndDate();
+            absence.setEndDate(absence.getStartDate());
+            absence.setStartDate(start);
+        }
         try {
             AbsenceEntity absenceEntity;
             if(absence.getId() != null) {
