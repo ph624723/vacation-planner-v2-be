@@ -80,6 +80,15 @@
       table {
         width: 100%;
       }
+      .staticBottomRight {
+        position: sticky;
+        display: block;
+        right: 0;
+        bottom: 40px;
+        margin-right: 40px;
+        margin-bottom: 40px;
+        z-index: 900;
+      }
     </style>
   </head>
   <body>
@@ -186,7 +195,8 @@
       </main>
 
       <footer class="android-footer mdl-mega-footer"
-              th:fragment="footerContent">
+              th:fragment="footerContent"
+              th:if="false">
         <div class="mdl-mega-footer--top-section">
           <div class="mdl-mega-footer--left-section">
 
