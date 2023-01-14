@@ -55,20 +55,36 @@
       .android-drawer span.mdl-navigation__link.mdl-navigation__link {
         color: #8bc34a;
       }
-      .centerLogin {
-        padding: 10px;
+      .centerContentBox {
+        padding: 20px;
         margin: auto;
       }
-      .android-screen-section {
+      .centerContentTableBox {
+        margin: auto;
+      }
+      .dialogContentBox {
+        max-width: 350px;
+      }
+      .pageTitle {
+        margin-bottom: 30px;
+      }
+      .title-screen-section {
         position: relative;
         padding-top: 60px;
-        padding-bottom: 80px;
+        padding-bottom: 50px;
+      }
+      .android-footer {
+        /*background-color: #fafafa;*/
+        position: relative;
+      }
+      table {
+        width: 100%;
       }
     </style>
   </head>
   <body>
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
-      <div class="android-header mdl-layout__header mdl-layout__header--waterfall"
+      <header class="mdl-layout__header mdl-layout__header--waterfall mdl-shadow--4dp"
            th:fragment="headerContent">
         <div class="mdl-layout__header-row">
           <span class="android-title mdl-layout-title"
@@ -117,7 +133,7 @@
             </li>
           </ul>
         </div>
-      </div>
+      </header >
 
       <div class="android-drawer mdl-layout__drawer"
            th:fragment="drawerContent">
@@ -138,7 +154,14 @@
             Swagger Documentation
           </a>
           <div class="android-drawer-separator"></div>
-          <span class="mdl-navigation__link">User Settings</span>
+          <span class="mdl-navigation__link"
+                sec:authorize="isAnonymous()">
+            User Settings
+          </span>
+          <span class="mdl-navigation__link"
+                sec:authorize="isAuthenticated()">
+            <div sec:authentication="name"></div>
+          </span>
           <a class="mdl-navigation__link"
              href="/login"
              sec:authorize="isAnonymous()">
@@ -157,10 +180,9 @@
         </nav>
       </div>
 
-      <div class="android-content mdl-layout__content">
-
-
-      </div>
+      <main class="mdl-layout__content mdl-color--grey-100">
+        <div class="page-content">Text</div>
+      </main>
 
       <footer class="android-footer mdl-mega-footer"
               th:fragment="footerContent">

@@ -6,58 +6,87 @@
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
     <div th:replace="index :: headerContent"> </div>
     <div th:replace="index :: drawerContent"> </div>
-    <div class="android-content mdl-layout__content">
-
-        <h2 th:text="'Edit Absence'"> Title </h2>
-
-        <form
-                th:action="@{/view/absences}"
-                th:object="${absence}"
-                method="post">
-
-            <p>
-                Person: <select
-                    class="form-control"
-                    th:field="*{personId}">
-                <option th:each="person : ${availablePersons}" th:value="${person.id}" th:text="${person.name}"></option>
-            </select>
-            </p>
-            <p>
-                Description: <input
-                    type="text"
-                    th:field="*{description}"/>
-            </p>
-            <p>
-                Start: <input
-                    type="date"
-                    th:field="*{startDate}"/>
-            </p>
-            <p>
-                End: <input
-                    type="date"
-                    th:field="*{endDate}"/>
-            </p>
-            <p>
-                <input
-                        type="hidden"
-                        th:field="*{id}"/>
-            </p>
-            <p>
-                Importance: <select
-                    class="form-control"
-                    th:field="*{level}">
-                <option th:each="level : ${importanceLevels}" th:value="${level.level}" th:text="${level}"></option>
-            </select>
-            </p>
-            <p>
-                <input type="submit" value="Submit"/>
-                <input type="button"
-                       value="Delete absence"
-                       th:onclick="'javascript:openDeleteAbsence(\'' + ${absence.id} + '\');'"/>
-            </p>
-        </form>
-
-    </div>
+    <main class="mdl-layout__content mdl-color--grey-100">
+        <div class="page-content">
+            <div class="title-screen-section mdl-typography--text-center">
+                <div class="mdl-typography--display-1-color-contrast pageTitle"
+                     th:text="${absence.id}==null ? 'Add Absence' : 'Edit Absence'">
+                    Title
+                </div>
+            </div>
+            <div class="mdl-shadow--2dp mdl-color--white mdl-cell centerContentBox dialogContentBox">
+                <form th:action="@{/view/absences}"
+                      th:object="${absence}"
+                      method="post">
+                    <div class="mdl-typography--text-center">
+                        <table>
+                            <tr>
+                                <td class="mdl-typography--text-left">
+                                    <span>Person</span>
+                                </td>
+                                <td class="mdl-typography--text-left">
+                                    <select class="form-control"
+                                            th:field="*{personId}">
+                                        <option th:each="person : ${availablePersons}" th:value="${person.id}" th:text="${person.name}"></option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="mdl-typography--text-left">
+                                    <span>Importance</span>
+                                </td>
+                                <td class="mdl-typography--text-left">
+                                    <select class="form-control"
+                                            th:field="*{level}">
+                                        <option th:each="level : ${importanceLevels}" th:value="${level.level}" th:text="${level}"></option>
+                                    </select>
+                                </td>
+                            </tr>
+                        </table>
+                        <br/>
+                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                            <input class="mdl-textfield__input"
+                                   type="text"
+                                   th:field="*{description}"
+                                   id="descriptionField">
+                            <label class="mdl-textfield__label" for="descriptionField">Description</label>
+                        </div>
+                        <br/>
+                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                            <input class="mdl-textfield__input"
+                                   type="date"
+                                   th:field="*{startDate}"
+                                   id="startField">
+                            <label class="mdl-textfield__label" for="startField">Start</label>
+                        </div>
+                        <br/>
+                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                            <input class="mdl-textfield__input"
+                                   type="date"
+                                   th:field="*{endDate}"
+                                   id="endField">
+                            <label class="mdl-textfield__label" for="endField">End</label>
+                        </div>
+                        <br/>
+                        <input type="hidden"
+                               th:field="*{id}"/>
+                    </div>
+                    <div class="mdl-typography--text-right">
+                        <button type="button"
+                                class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+                                th:onclick="'javascript:openDeleteAbsence(\'' + ${absence.id} + '\');'"
+                                th:if="${absence.id}!=null">
+                            Delete absence
+                        </button>
+                        <button type="submit"
+                                class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
+                            Submit
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
     <footer th:replace="index :: footerContent"> </footer>
 </div>
 <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>

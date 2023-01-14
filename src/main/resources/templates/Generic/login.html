@@ -4,23 +4,27 @@
 </head>
 <body>
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
-  <div th:replace="index :: headerContent"> </div>
+  <header th:replace="index :: headerContent"> </header>
   <div th:replace="index :: drawerContent"> </div>
-  <div class="android-content mdl-layout__content">
-
-    <div class="android-screen-section mdl-typography--text-center">
-      <p class="mdl-typography--headline mdl-typography--font-thin"
-         th:if="${credentials.logout}">
-        Logout successful
-      </p>
-      <div class="mdl-typography--display-1-color-contrast">Sign In</div>
-    </div>
-    <div class="demo-graphs mdl-shadow--2dp mdl-color--white mdl-cell mdl-cell--8-col centerLogin">
-      <div>
+  <main class="mdl-layout__content mdl-color--grey-100">
+    <div class="page-content">
+      <div class="title-screen-section mdl-typography--text-center">
+        <p class="mdl-typography--headline mdl-typography--font-thin"
+           th:if="${credentials.logout}">
+          Logout successful
+        </p>
+        <div class="mdl-typography--display-1-color-contrast pageTitle">Sign In</div>
+        <p class="mdl-typography--headline mdl-typography--font-thin"
+           th:if="${credentials.wrongPassword}">
+          Wrong username or password
+        </p>
+      </div>
+      <div class="mdl-shadow--2dp mdl-color--white mdl-cell centerContentBox dialogContentBox">
         <form th:action="@{/login}"
               th:object="${credentials}"
               method="post">
-          <p>
+
+          <div class="mdl-typography--text-center">
             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
               <input class="mdl-textfield__input"
                      type="text"
@@ -28,8 +32,7 @@
                      id="usernameField">
               <label class="mdl-textfield__label" for="usernameField">Username</label>
             </div>
-          </p>
-          <p>
+            <br/>
             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
               <input class="mdl-textfield__input"
                      type="password"
@@ -37,19 +40,18 @@
                      id="passwordField">
               <label class="mdl-textfield__label" for="passwordField">Password</label>
             </div>
-          </p>
-          <button type="submit"
-                  class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
-            Submit
-          </button>
-          <p th:if="${credentials.wrongPassword}">
-            Wrong username or password
-          </p>
+          </div>
+          <div class="mdl-typography--text-right">
+            <button type="submit"
+                    class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
+              Submit
+            </button>
+          </div>
         </form>
       </div>
-    </div>
 
-  </div>
+    </div>
+  </main>
   <footer th:replace="index :: footerContent"> </footer>
 </div>
 <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>

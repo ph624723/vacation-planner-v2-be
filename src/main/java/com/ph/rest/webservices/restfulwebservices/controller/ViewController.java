@@ -79,17 +79,19 @@ public class ViewController {
         ModelAndView model = new ModelAndView("Absence/list");
         String titleText;
         List<AbsenceEntity> absences;
+        PersonEntity person = null;
         if(personId == null){
             absences = absenceJpaRepository.findAll();
             titleText = "all persons";
         }else{
-            PersonEntity person = personJpaRepository.findById(personId).get();
+            person = personJpaRepository.findById(personId).get();
             absences = absenceJpaRepository.findByPerson(person);
             titleText = person.getName();
         }
 
         model.addObject("absences", absences);
         model.addObject("titleText", titleText);
+        model.addObject("person", person);
         model.addObject("personId", personId == null ? -1 : personId);
 
         return model;
@@ -177,6 +179,11 @@ public class ViewController {
     @GetMapping(value = "/index-o")
     public ModelAndView  indexOView(){
         return new ModelAndView("index-original");
+    }
+
+    @GetMapping(value = "/index-o0")
+    public ModelAndView  indexO0View(){
+        return new ModelAndView("index-original-0");
     }
 
     @GetMapping(value = "/changePassword")

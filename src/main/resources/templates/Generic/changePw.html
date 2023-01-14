@@ -6,41 +6,59 @@
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
   <div th:replace="index :: headerContent"> </div>
   <div th:replace="index :: drawerContent"> </div>
-  <div class="android-content mdl-layout__content">
+  <main class="mdl-layout__content mdl-color--grey-100">
+    <div class="page-content">
+      <div class="title-screen-section mdl-typography--text-center">
+        <div class="mdl-typography--display-1-color-contrast pageTitle">Change Password</div>
+        <p class="mdl-typography--headline mdl-typography--font-thin"
+           th:if="${credentials.wrongPassword}">
+          Wrong username or password
+        </p>
+        <p class="mdl-typography--headline mdl-typography--font-thin"
+           th:if="${credentials.unequalPassword}">
+          New password fields do not match
+        </p>
+      </div>
+      <div class="mdl-shadow--2dp mdl-color--white mdl-cell centerContentBox dialogContentBox">
+        <form th:action="@{/view/changePassword}"
+              th:object="${credentials}"
+              method="post">
 
-    <h2 th:text="'Change Password'"> Title </h2>
-
-    <form
-            th:action="@{/view/changePassword}"
-            th:object="${credentials}"
-            method="post">
-      <p>
-        Current password: <input
-              type="password"
-              th:field="*{password}"/>
-      </p>
-      <p>
-        New password: <input
-              type="password"
-              th:field="*{newPassword}"/>
-      </p>
-      <p>
-        Repeat password: <input
-              type="password"
-              th:field="*{newPassword2}"/>
-      </p>
-      <p>
-        <input type="submit" value="Submit"/>
-      </p>
-      <p th:if="${credentials.wrongPassword}">
-        Wrong username or password
-      </p>
-      <p th:if="${credentials.unequalPassword}">
-        New password fields do not match
-      </p>
-    </form>
-
-  </div>
+          <div class="mdl-typography--text-center">
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+              <input class="mdl-textfield__input"
+                     type="password"
+                     th:field="*{password}"
+                     id="passwordField">
+              <label class="mdl-textfield__label" for="passwordField">Current password</label>
+            </div>
+            <br/>
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+              <input class="mdl-textfield__input"
+                     type="password"
+                     th:field="*{newPassword}"
+                     id="passwordFieldNew1">
+              <label class="mdl-textfield__label" for="passwordFieldNew1">New password</label>
+            </div>
+            <br/>
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+              <input class="mdl-textfield__input"
+                     type="password"
+                     th:field="*{newPassword2}"
+                     id="passwordFieldNew2">
+              <label class="mdl-textfield__label" for="passwordFieldNew2">Repeat password</label>
+            </div>
+          </div>
+          <div class="mdl-typography--text-right">
+            <button type="submit"
+                    class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
+              Submit
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
   <footer th:replace="index :: footerContent"> </footer>
 </div>
 <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
