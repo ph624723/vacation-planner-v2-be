@@ -11,6 +11,7 @@ import com.ph.rest.webservices.restfulwebservices.model.Absence;
 import com.ph.rest.webservices.restfulwebservices.model.LoginCredentials;
 import com.ph.rest.webservices.restfulwebservices.model.Person;
 import com.ph.service.AuthService;
+import com.ph.service.EmailServiceImpl;
 import com.ph.service.HashService;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.validation.Valid;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -42,6 +44,9 @@ public class ViewController {
 
     @Autowired
     UserJpaRepository userJpaRepository;
+
+    @Autowired
+    EmailServiceImpl emailService;
 
     @GetMapping(value = "/persons")
     public ModelAndView  allPersonsView(){
@@ -175,6 +180,7 @@ public class ViewController {
 
     @GetMapping(value = "/index")
     public ModelAndView  indexView(){
+        System.out.println(emailService.sendSimpleMail("phegerp@gmail.com","test: "+ LocalTime.now().toString(),"Testmessage"));
         return new ModelAndView("index");
     }
 
