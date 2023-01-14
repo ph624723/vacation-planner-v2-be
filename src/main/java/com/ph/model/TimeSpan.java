@@ -17,41 +17,41 @@ public class TimeSpan {
 
     @Getter
     @JsonFormat(shape = JsonFormat.Shape.STRING)
-    private final Date start;
+    private final LocalDate start;
     @Getter
     @JsonFormat(shape = JsonFormat.Shape.STRING)
-    private final Date end;
+    private final LocalDate end;
 
-    public boolean includes(Date date){
-        return date != null && start.before(date) && end.after(date);
+    public boolean includes(LocalDate date){
+        return date != null && start.isBefore(date) && end.isAfter(date);
     }
 
     public boolean includes(TimeSpan compare){
         return compare != null &&
-                compare.getEnd().before(end) &&
-                compare.getStart().after(start);
+                compare.getEnd().isBefore(end) &&
+                compare.getStart().isAfter(start);
     }
     public boolean intersects(TimeSpan compare){
         return compare != null &&
-                compare.getEnd().after(start) &&
-                compare.getStart().before(end);
+                compare.getEnd().isAfter(start) &&
+                compare.getStart().isBefore(end);
     }
     public List<TimeSpan> subtract (TimeSpan compare){
         List<TimeSpan> result = new ArrayList<>();
         if(compare != null && this.intersects(compare)){
-            if(compare.getStart().after(start)){
-                result.add(new TimeSpan(start, DateUtils.addDays(compare.getStart(),-1)));
+            if(compare.getStart().isAfter(start)){
+                result.add(new TimeSpan(start, compare.getStart().minusDays(1)));//DateUtils.addDays(compare.getStart(),-1)));
             }
-            if(compare.getEnd().before(end)){
-                result.add(new TimeSpan(DateUtils.addDays(compare.getEnd(),1), end));
+            if(compare.getEnd().isBefore(end)){
+                result.add(new TimeSpan(compare.getEnd().plusDays(1),end)); //DateUtils.addDays(compare.getEnd(),1), end));
             }
         }else {
             result.add(this);
         }
         return result;
     }
-    public TimeSpan (Date start, Date end){
-        if(end.after(start)){
+    public TimeSpan (LocalDate start, LocalDate end){
+        if(end.isAfter(start)){
             this.start = start;
             this.end = end;
         }else{

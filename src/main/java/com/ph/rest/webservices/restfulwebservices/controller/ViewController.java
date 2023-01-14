@@ -25,11 +25,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.validation.Valid;
+import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -96,6 +94,8 @@ public class ViewController {
             titleText = person.getName();
         }
 
+        absences = absences.stream().map(x -> x.trimDescription()).sorted(Comparator.comparing(AbsenceEntity::getStartDate)).collect(Collectors.toList());
+
         model.addObject("absences", absences);
         model.addObject("titleText", titleText);
         model.addObject("person", person);
@@ -111,6 +111,7 @@ public class ViewController {
         ModelAndView model = new ModelAndView("Absence/edit");
 
         Absence absence = Absence.fromEntity(absenceJpaRepository.findById(absenceId).get());
+        System.out.println("Get-------------------"+absence.getStartDate()+" "+absence.getEndDate());
         List<PersonEntity> availablePersons = personJpaRepository.findAll();
         List<AbsenceEntity.Importance> importanceLevels = Arrays.asList(AbsenceEntity.Importance.values());
 
@@ -135,6 +136,12 @@ public class ViewController {
 
     @PostMapping(value = "/absences")
     public ModelAndView updateAbsenceView(@ModelAttribute Absence absence){
+        if(absence.getStartDate().compareTo(absence.getEndDate()) > 0){
+            LocalDate start = absence.getEndDate();
+            absence.setEndDate(absence.getStartDate());
+            absence.setStartDate(start);
+        }
+        System.out.println("Post-------------------"+absence.getStartDate()+" "+absence.getEndDate());
         ModelAndView model = new ModelAndView("Absence/confirm");
         try {
             AbsenceEntity absenceEntity;
@@ -143,6 +150,7 @@ public class ViewController {
             }else{
                 absenceEntity = absence.toEntity(null, personJpaRepository);
             }
+            System.out.println("Post-------------------"+absenceEntity.getStartDate()+" "+absenceEntity.getEndDate());
             absenceJpaRepository.save(absenceEntity);
             model.addObject("person", absenceEntity.getPerson());
         }catch(PersonNotFoundException e){
@@ -180,7 +188,7 @@ public class ViewController {
 
     @GetMapping(value = "/index")
     public ModelAndView  indexView(){
-        System.out.println(emailService.sendSimpleMail("phegerp@gmail.com","test: "+ LocalTime.now().toString(),"Testmessage"));
+        //System.out.println(emailService.sendSimpleMail("phegerp@gmail.com","test: "+ LocalTime.now().toString(),"Testmessage"));
         return new ModelAndView("index");
     }
 

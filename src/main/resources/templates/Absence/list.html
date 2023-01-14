@@ -40,10 +40,8 @@
                     <tr>
                         <th th:if="${person == null}"
                             class="mdl-data-table__cell--non-numeric"> Person</th>
-                        <th> Start </th>
-                        <th> End </th>
+                        <th class="mdl-data-table__cell--non-numeric"> Start </th>
                         <th class="mdl-data-table__cell--non-numeric"> Description </th>
-                        <th class="mdl-data-table__cell--non-numeric"> Importance Level </th>
                     </tr>
                     </thead>
                     <tbody>
@@ -54,10 +52,8 @@
                         th:onclick="'javascript:openEditAbsence(\'' + ${absence.id} + '\');'">
                         <td th:if="${person == null}"
                             class="mdl-data-table__cell--non-numeric"><span th:text="${absence.person.name}"> Person </span></td>
-                        <td><span th:text="${absence.startDate}"> Start </span></td>
-                        <td><span th:text="${absence.endDate}"> End </span></td>
+                        <td class="mdl-data-table__cell--non-numeric"><span th:text="${absence.startDate}"> Start </span></td>
                         <td class="mdl-data-table__cell--non-numeric"><span th:text="${absence.description}"> Description </span></td>
-                        <td class="mdl-data-table__cell--non-numeric"><span th:text="${absence.importance}"> Importance </span></td>
                     </tr>
                     </tbody>
                 </table>
@@ -81,7 +77,6 @@
         </div>
         <footer th:replace="index :: footerContent"> </footer>
     </main>
-
 </div>
 <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
 </body>

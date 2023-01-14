@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.validation.constraints.Null;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.Optional;
 
@@ -33,12 +34,12 @@ public class Absence {
 	@Getter
 	@Setter
 	@JsonFormat(shape = JsonFormat.Shape.STRING)
-	private java.sql.Date startDate;
+	private LocalDate startDate;
 	@ApiModelProperty(position = 3, required = true, value = "1993-05-24")
 	@Getter
 	@Setter
 	@JsonFormat(shape = JsonFormat.Shape.STRING)
-	private java.sql.Date endDate;
+	private LocalDate endDate;
 	@ApiModelProperty(position = 4, required = true, value = "2")
 	@Getter
 	@Setter

@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -88,11 +89,11 @@ public class AbsenceController implements IController<Absence,Long> {
 			@ApiParam(value = "The inclusive start-date of the desired time-frame in ISO format", required = true)
 			@RequestHeader("start")
 			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-			Date startDate,
+			LocalDate startDate,
 			@ApiParam(value = "The inclusive end-date of the desired time-frame in ISO format", required = true)
 			@RequestHeader("end")
 			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-			Date endDate,
+			LocalDate endDate,
 			@ApiParam(value = "The importance level up to which (inclusive) absences are to be ignored", required = false)
 			@RequestParam(required = false)
 			Integer upToLevel,
@@ -144,11 +145,11 @@ public class AbsenceController implements IController<Absence,Long> {
 			@ApiParam(value = "The inclusive start-date of the desired time-frame in ISO format", required = true)
 			@RequestHeader("start")
 			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-			Date startDate,
+			LocalDate startDate,
 			@ApiParam(value = "The inclusive end-date of the desired time-frame in ISO format", required = true)
 			@RequestHeader("end")
 			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-			Date endDate,
+			LocalDate endDate,
 			@ApiParam(value = "The importance level up to which (inclusive) absences are to be ignored", required = false)
 			@RequestParam(required = false)
 			Integer upToLevel,
@@ -292,7 +293,7 @@ public class AbsenceController implements IController<Absence,Long> {
 	private ResponseEntity<ResourceIdResponse<Long>> saveAbsence(Absence absence, AbsenceEntity oldPerson){
 		try {
 			AbsenceEntity absenceEntity = absence.toEntity(oldPerson, personRepository);
-
+			System.out.println("Post-------------------"+absenceEntity.getStartDate()+" "+absenceEntity.getEndDate());
 			AbsenceEntity absenceUpdated = repository.save(absenceEntity);
 
 			ResourceIdResponse<Long> response = new ResourceIdResponse();
