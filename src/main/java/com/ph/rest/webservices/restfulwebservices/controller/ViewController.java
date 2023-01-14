@@ -19,9 +19,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -197,30 +199,41 @@ public class ViewController {
         return model;
     }
     @PostMapping(value = "/changePassword")
-    public ModelAndView  processNewPw(@ModelAttribute LoginCredentials credentials){
+    public String processNewPw(
+            @Valid
+            @ModelAttribute
+            LoginCredentials credentials,
+            BindingResult bindingResult,
+            Model model){
+
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String username = ((UserDetails)principal).getUsername();
 
         UserEntity user = userJpaRepository.findById(username).get();
         if(user.getPassword().equals(HashService.MD5(credentials.getPassword()))){
+            if(bindingResult.hasErrors()){
+                credentials.setErrorText("Password should be at least 6 characters");
+                model.addAttribute("credentials", credentials);
+                return "Generic/changePw";
+            }
 
             if(credentials.getNewPassword().equals(credentials.getNewPassword2())){
                 user.setPassword(HashService.MD5(credentials.getNewPassword()));
                 userJpaRepository.save(user);
 
-                ModelAndView model = new ModelAndView("redirect:/view/home");
-                return model;
+                //ModelAndView model = new ModelAndView("redirect:/view/home");
+                return "redirect:/view/home";
             }else{
-                credentials.setUnequalPassword(true);
-                ModelAndView model = new ModelAndView("Generic/changePw");
-                model.addObject("credentials", credentials);
-                return model;
+                credentials.setErrorText("New password fields do not match");
+                //ModelAndView model = new ModelAndView("Generic/changePw");
+                model.addAttribute("credentials", credentials);
+                return "Generic/changePw";
             }
         }else{
-            credentials.setWrongPassword(true);
-            ModelAndView model = new ModelAndView("Generic/changePw");
-            model.addObject("credentials", credentials);
-            return model;
+            credentials.setErrorText("Wrong password");
+            //ModelAndView model = new ModelAndView("Generic/changePw");
+            model.addAttribute("credentials", credentials);
+            return "Generic/changePw";
         }
     }
 

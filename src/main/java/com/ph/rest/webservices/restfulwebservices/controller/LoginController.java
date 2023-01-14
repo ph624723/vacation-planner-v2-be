@@ -20,7 +20,7 @@ public class LoginController {
 
         LoginCredentials credentials = new LoginCredentials();
         if(error != null){
-            credentials.setWrongPassword(true);
+            credentials.setErrorText("Wrong username or password");
         }
         if(logout != null){
             credentials.setLogout(true);

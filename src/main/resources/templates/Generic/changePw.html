@@ -11,12 +11,9 @@
       <div class="title-screen-section mdl-typography--text-center">
         <div class="mdl-typography--display-1-color-contrast pageTitle">Change Password</div>
         <p class="mdl-typography--headline mdl-typography--font-thin"
-           th:if="${credentials.wrongPassword}">
-          Wrong username or password
-        </p>
-        <p class="mdl-typography--headline mdl-typography--font-thin"
-           th:if="${credentials.unequalPassword}">
-          New password fields do not match
+           th:if="${credentials.errorText} != null"
+           th:text="${credentials.errorText}">
+          Text
         </p>
       </div>
       <div class="mdl-shadow--2dp mdl-color--white mdl-cell centerContentBox dialogContentBox">
@@ -39,6 +36,8 @@
                      th:field="*{newPassword}"
                      id="passwordFieldNew1">
               <label class="mdl-textfield__label" for="passwordFieldNew1">New password</label>
+              <span class="mdl-textfield__error"
+                    th:errors="*{newPassword}">Text</span>
             </div>
             <br/>
             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">

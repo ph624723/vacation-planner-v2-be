@@ -15,8 +15,9 @@
         </p>
         <div class="mdl-typography--display-1-color-contrast pageTitle">Sign In</div>
         <p class="mdl-typography--headline mdl-typography--font-thin"
-           th:if="${credentials.wrongPassword}">
-          Wrong username or password
+           th:if="${credentials.errorText} != null"
+           th:text="${credentials.errorText}">
+          Text
         </p>
       </div>
       <div class="mdl-shadow--2dp mdl-color--white mdl-cell centerContentBox dialogContentBox">
