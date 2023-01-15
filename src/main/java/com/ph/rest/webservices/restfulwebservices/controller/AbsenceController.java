@@ -9,6 +9,7 @@ import com.ph.persistence.repository.PersonJpaRepository;
 import com.ph.rest.webservices.restfulwebservices.model.*;
 import com.ph.service.AuthService;
 import com.ph.service.FreeTimeService;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.Date;
 import java.util.List;
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/absences")
+@Api(tags = {"Absences"})
 public class AbsenceController implements IController<Absence,Long> {
 	
 	@Autowired
@@ -31,7 +34,7 @@ public class AbsenceController implements IController<Absence,Long> {
 	@Autowired
 	private PersonJpaRepository personRepository;
 
-	@ApiOperation(value = "Gets all stored absences")
+	@ApiOperation(value = "Gets all stored absences",tags = {"Absences"})
 	public ResponseEntity<AbsenceListResponse> getAll(
 			@ApiParam(value = "Bearer token for authentification", required = true)
 			@RequestHeader("Authorization")
@@ -49,7 +52,7 @@ public class AbsenceController implements IController<Absence,Long> {
 		return new ResponseEntity<>(response,HttpStatus.OK);
 	}
 
-	@ApiOperation(value = "Gets all stored absences for the specified person")
+	@ApiOperation(value = "Gets all stored absences for the specified person",tags = {"Absences"})
 	@GetMapping("/person/{personId}")
 	public ResponseEntity<AbsenceListResponse> getByUser(
 			@ApiParam(value = "The user to get absences for", required = true)
@@ -78,7 +81,8 @@ public class AbsenceController implements IController<Absence,Long> {
 	}
 
 	@ApiOperation(value="Gets time-slots without absences for a comma list of persons",
-			notes = "Gets time-slots without absences inside the specified time-frame. Optionally an importance level can be specified up to which absences are to be ignored.")
+			notes = "Gets time-slots without absences inside the specified time-frame. Optionally an importance level can be specified up to which absences are to be ignored.",
+			tags = {"Free time-slots"})
 	@PostMapping("/free/person/{personIds}")
 	public ResponseEntity<TimeSpanListResponse> findFreeTimesByUser(
 			@ApiParam(value = "The inclusive start-date to end-date of the desired time-frame", required = true)
@@ -126,7 +130,8 @@ public class AbsenceController implements IController<Absence,Long> {
 	}
 
 	@ApiOperation(value="Gets time-slots without absences",
-					notes = "Gets time-slots without absences inside the specified time-frame. Optionally an importance level can be specified up to which absences are to be ignored.")
+					notes = "Gets time-slots without absences inside the specified time-frame. Optionally an importance level can be specified up to which absences are to be ignored.",
+					tags = {"Free time-slots"})
 	@PostMapping("/free")
 	public ResponseEntity<TimeSpanListResponse> findFreeTimes(
 			@ApiParam(value = "The inclusive start-date to end-date of the desired time-frame", required = true)
@@ -161,7 +166,7 @@ public class AbsenceController implements IController<Absence,Long> {
 		return new ResponseEntity<>(response,HttpStatus.OK);
 	}
 
-	@ApiOperation(value = "Get a single absence by ID")
+	@ApiOperation(value = "Get a single absence by ID",tags = {"Absences"})
 	public ResponseEntity<AbsenceResponse> get(
 			@ApiParam(value = "ID of the desired absence")
 			Long id,
@@ -187,7 +192,7 @@ public class AbsenceController implements IController<Absence,Long> {
 		}
 	}
 
-	@ApiOperation(value = "Delete a single absence by ID")
+	@ApiOperation(value = "Delete a single absence by ID",tags = {"Absences"})
 	public ResponseEntity<Response> delete(
 			@ApiParam(value = "ID of the target absence")
 			Long id,
@@ -213,7 +218,7 @@ public class AbsenceController implements IController<Absence,Long> {
 	}
 
 	@ApiOperation(value = "Update a single absence by ID",
-					notes="Will use the URI specified ID and ignore message body (if a different ID is present there).")
+					notes="Will use the URI specified ID and ignore message body (if a different ID is present there).",tags = {"Absences"})
 	public ResponseEntity<ResourceIdResponse<Long>> update(
 			@ApiParam(value = "ID of the target absence")
 			Long id,
@@ -243,7 +248,7 @@ public class AbsenceController implements IController<Absence,Long> {
 		}
 	}
 
-	@ApiOperation(value = "Create a new absence linked to a known person")
+	@ApiOperation(value = "Create a new absence linked to a known person",tags = {"Absences"})
 	public ResponseEntity<ResourceIdResponse<Long>> create(
 			@ApiParam(value = "Absence information to be stored")
 			Absence absence,

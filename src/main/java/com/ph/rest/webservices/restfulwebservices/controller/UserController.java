@@ -13,6 +13,7 @@ import com.ph.rest.webservices.restfulwebservices.model.*;
 import com.ph.service.AuthService;
 import com.ph.service.EmailServiceImpl;
 import com.ph.service.HashService;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/users")
+@Api(tags = {"Users (login)"}, description = "Credentials management endpoint.")
 public class UserController implements IRootController<User,String>{
 	
 	@Autowired

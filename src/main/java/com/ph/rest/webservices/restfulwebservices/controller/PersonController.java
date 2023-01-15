@@ -7,6 +7,7 @@ import com.ph.persistence.repository.PersonJpaRepository;
 import com.ph.persistence.repository.UserJpaRepository;
 import com.ph.rest.webservices.restfulwebservices.model.*;
 import com.ph.service.AuthService;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/persons")
+@Api(tags = {"Persons"}, description = "Register of persons that can own absences or participate in events.")
 public class PersonController {
 	
 	@Autowired

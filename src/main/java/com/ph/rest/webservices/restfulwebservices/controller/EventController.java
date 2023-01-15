@@ -1,11 +1,13 @@
-package com.ph.persistence.model;
+package com.ph.rest.webservices.restfulwebservices.controller;
 
 import com.ph.model.PersonNotFoundException;
+import com.ph.persistence.model.EventEntity;
 import com.ph.persistence.repository.EventJpaRepository;
 import com.ph.persistence.repository.PersonJpaRepository;
 import com.ph.rest.webservices.restfulwebservices.controller.IController;
 import com.ph.rest.webservices.restfulwebservices.model.*;
 import com.ph.service.AuthService;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/events")
+@Api(tags = {"Events"}, description = "Planned events involving multiple people.")
 public class EventController implements IController<Event, Long> {
 
     @Autowired

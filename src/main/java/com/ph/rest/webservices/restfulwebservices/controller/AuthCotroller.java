@@ -6,6 +6,7 @@ import com.ph.persistence.repository.UserJpaRepository;
 import com.ph.rest.webservices.restfulwebservices.model.*;
 import com.ph.service.AuthService;
 import com.ph.service.HashService;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,7 @@ import java.util.Random;
 
 @RestController
 @RequestMapping("/auth")
+@Api(tags = {"Authentication"}, description = "Authentication of Api consumers. Provides Bearer Token")
 public class AuthCotroller {
 
     @Autowired
