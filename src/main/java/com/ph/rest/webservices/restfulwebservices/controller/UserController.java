@@ -1,18 +1,25 @@
 package com.ph.rest.webservices.restfulwebservices.controller;
 
+import com.ph.model.EmailFailedException;
 import com.ph.model.PersonNotFoundException;
+import com.ph.model.UserNameInUseException;
 import com.ph.model.UserNotFoundException;
 import com.ph.persistence.model.PersonEntity;
 import com.ph.persistence.model.UserEntity;
 import com.ph.persistence.repository.PersonJpaRepository;
 import com.ph.persistence.repository.UserJpaRepository;
+import com.ph.rest.webservices.restfulwebservices.Service.UserService;
 import com.ph.rest.webservices.restfulwebservices.model.*;
+import com.ph.service.AuthService;
+import com.ph.service.EmailServiceImpl;
 import com.ph.service.HashService;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
@@ -29,12 +36,12 @@ public class UserController implements IRootController<User,String>{
 	private UserJpaRepository repository;
 
 	@Autowired
-	private PersonJpaRepository personRepository;
+	private UserService userService;
 
 	private final String rootUserName = "root";
 	private final String rootUserErrorText = "Root privileges required to access user data.";
 
-	@ApiOperation(value = "Gets all stored users")
+	@ApiOperation(value = "Gets all stored users", notes="root access only")
 	public ResponseEntity<UserListResponse> getAll(
 			String username,
 			String password
@@ -84,7 +91,7 @@ public class UserController implements IRootController<User,String>{
 		}
 	}
 
-	@ApiOperation(value = "Delete a single user by ID")
+	@ApiOperation(value = "Delete a single user by ID", notes="root access only")
 	public ResponseEntity<Response> delete(String id,
 										   String username,
 										   String password) {
@@ -132,7 +139,7 @@ public class UserController implements IRootController<User,String>{
 					response.setMessage("Given person was null");
 					return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
 				}
-				return saveUser(user, oldUser);
+				return new ResponseEntity<>(userService.saveUser(user, oldUser), HttpStatus.OK);
 			}else{
 				Response response = new Response();
 				response.setRespondeCode(RepsonseCode.UNKNOWN_ID);
@@ -146,7 +153,7 @@ public class UserController implements IRootController<User,String>{
 		}
 	}
 
-	@ApiOperation(value = "Create a new user+person combination")
+	@ApiOperation(value = "Create a new user+person combination", notes="root access only")
 	public ResponseEntity<ResourceIdResponse<String>> create(User user,
 										   String username,
 										   String password){
@@ -164,20 +171,44 @@ public class UserController implements IRootController<User,String>{
 			return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
 		}
 				
-		return saveUser(user,null);
+		return new ResponseEntity<>(userService.saveUser(user,null), HttpStatus.OK);
 	}
 
-	private ResponseEntity<ResourceIdResponse<String>> saveUser(User user, UserEntity oldUser){
-			user.setPassword(HashService.MD5(user.getPassword()));
-			UserEntity userEntity = user.toEntity(oldUser);
+	@ApiOperation(value = "Create a new user+person combination", notes="token access")
+	@PostMapping("/register")
+	public ResponseEntity<ResourceIdResponse<String>> register(
+			@RequestBody
+			@ApiParam(value = "Credentials to create user from")
+			RegisterCredentials credentials,
+			@RequestHeader("Authorization")
+			@ApiParam(value = "Bearer token for authentication", required = true)
+			String authKey){
+		if(!AuthService.isTokenValid(authKey)){
+			ResourceIdResponse response = new ResourceIdResponse();
+			response.setMessage("Authorization key is invalid");
+			response.setRespondeCode(RepsonseCode.TOKEN_DENIED);
+			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+		}
+		if(credentials.getUsername().length() < 4){
+			ResourceIdResponse response = new ResourceIdResponse();
+			response.setMessage("Username has to have at least 4 characters");
+			response.setRespondeCode(RepsonseCode.REGISTER_DENIED);
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+		}
 
-			UserEntity userUpdated = repository.save(userEntity);
-
-			ResourceIdResponse<String> response = new ResourceIdResponse<>();
-			response.setResourceId(userUpdated.getName());
-			response.setRespondeCode(RepsonseCode.SAVE_SUCCESSFULL);
-			response.setMessage("Saved user with name: "+userUpdated.getName());
-			return new ResponseEntity<>(response, HttpStatus.OK);
+		try {
+			return new ResponseEntity<>(userService.registerUser(credentials), HttpStatus.CREATED);
+		}catch (EmailFailedException e){
+			ResourceIdResponse response = new ResourceIdResponse();
+			response.setMessage("Confirmation e-mail could not be sent. Please check contact field.");
+			response.setRespondeCode(RepsonseCode.SAVE_FAILED);
+			return new ResponseEntity<>(response, HttpStatus.EXPECTATION_FAILED);
+		}catch (UserNameInUseException e){
+			ResourceIdResponse response = new ResourceIdResponse();
+			response.setMessage("Username already in use");
+			response.setRespondeCode(RepsonseCode.REGISTER_DENIED);
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+		}
 	}
 
 	private boolean authenticateRootUser(String username, String password){

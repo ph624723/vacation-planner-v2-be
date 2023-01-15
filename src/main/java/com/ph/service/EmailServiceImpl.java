@@ -20,7 +20,7 @@ public class EmailServiceImpl implements EmailService {
     @Value("${spring.mail.username}") private String sender;
 
     public String sendSimpleMail(
-            String to, String subject, String text) throws Exception{
+            String to, String subject, String text) {
 
 
             SimpleMailMessage message = new SimpleMailMessage();
@@ -33,5 +33,4 @@ public class EmailServiceImpl implements EmailService {
             return "Mail sent successfully";
 
     }
-
 }
