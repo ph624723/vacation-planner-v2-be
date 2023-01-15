@@ -77,22 +77,17 @@ public class AbsenceController implements IController<Absence,Long> {
 		}
 	}
 
-	@ApiOperation(value="Gets time-slots without absences for a single person",
+	@ApiOperation(value="Gets time-slots without absences for a comma list of persons",
 			notes = "Gets time-slots without absences inside the specified time-frame. Optionally an importance level can be specified up to which absences are to be ignored.")
-	@GetMapping("/free/person/{personIds}")
+	@PostMapping("/free/person/{personIds}")
 	public ResponseEntity<TimeSpanListResponse> findFreeTimesByUser(
-			@ApiParam(value = "The inclusive start-date of the desired time-frame in ISO format", required = true)
-			@RequestHeader("start")
-			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-			Date startDate,
-			@ApiParam(value = "The inclusive end-date of the desired time-frame in ISO format", required = true)
-			@RequestHeader("end")
-			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-			Date endDate,
+			@ApiParam(value = "The inclusive start-date to end-date of the desired time-frame", required = true)
+			@RequestBody
+			TimeSpan timeSpan,
 			@ApiParam(value = "The importance level up to which (inclusive) absences are to be ignored", required = false)
 			@RequestParam(required = false)
 			Integer upToLevel,
-			@ApiParam(value = "The users to get absences for. Comma separated list of IDs", required = true)
+			@ApiParam(value = "The persons to get absences for. Comma separated list of IDs", required = true)
 			@PathVariable
 			List<Long> personIds,
 			@ApiParam(value = "Bearer token for authentication", required = true)
@@ -121,7 +116,7 @@ public class AbsenceController implements IController<Absence,Long> {
 		}
 
 		List<TimeSpan> freeTimes = FreeTimeService.findFreeTimes(
-				new TimeSpan(startDate,endDate),
+				timeSpan.cleanUp(),
 				absences);
 
 		response.setMessage("Considered person ids: "+persons.stream().map(x -> x.getId().toString()).collect(Collectors.joining(", ")));
@@ -132,16 +127,11 @@ public class AbsenceController implements IController<Absence,Long> {
 
 	@ApiOperation(value="Gets time-slots without absences",
 					notes = "Gets time-slots without absences inside the specified time-frame. Optionally an importance level can be specified up to which absences are to be ignored.")
-	@GetMapping("/free")
+	@PostMapping("/free")
 	public ResponseEntity<TimeSpanListResponse> findFreeTimes(
-			@ApiParam(value = "The inclusive start-date of the desired time-frame in ISO format", required = true)
-			@RequestHeader("start")
-			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-			Date startDate,
-			@ApiParam(value = "The inclusive end-date of the desired time-frame in ISO format", required = true)
-			@RequestHeader("end")
-			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-			Date endDate,
+			@ApiParam(value = "The inclusive start-date to end-date of the desired time-frame", required = true)
+			@RequestBody
+			TimeSpan timeSpan,
 			@ApiParam(value = "The importance level up to which (inclusive) absences are to be ignored", required = false)
 			@RequestParam(required = false)
 			Integer upToLevel,
@@ -162,7 +152,7 @@ public class AbsenceController implements IController<Absence,Long> {
 		}
 
 		List<TimeSpan> freeTimes = FreeTimeService.findFreeTimes(
-				new TimeSpan(startDate,endDate),
+				timeSpan.cleanUp(),
 				absences);
 
 

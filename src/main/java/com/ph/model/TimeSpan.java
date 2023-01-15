@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.time.DateUtils;
 
+import java.sql.Time;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -16,11 +17,13 @@ import java.util.List;
 public class TimeSpan {
 
     @Getter
+    @Setter
     @JsonFormat(shape = JsonFormat.Shape.STRING)
-    private final Date start;
+    private Date start;
     @Getter
+    @Setter
     @JsonFormat(shape = JsonFormat.Shape.STRING)
-    private final Date end;
+    private Date end;
 
     public boolean includes(Date date){
         return date != null && start.before(date) && end.after(date);
@@ -58,5 +61,18 @@ public class TimeSpan {
             this.end = start;
             this.start = end;
         }
+    }
+
+    public TimeSpan(){
+
+    }
+
+    public TimeSpan cleanUp(){
+        if(start.after(end)){
+            Date tmp = end;
+            this.end = start;
+            this.start = tmp;
+        }
+        return this;
     }
 }
