@@ -10,7 +10,7 @@ import javax.validation.constraints.Size;
 public class RegisterCredentials {
     @Getter
     @Setter
-    @Size(min = 4)
+    @Size(min = 3)
     @ApiParam(value = "name for the created account, used for login.", required = true)
     private String username;
     @Getter

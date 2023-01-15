@@ -189,9 +189,9 @@ public class UserController implements IRootController<User,String>{
 			response.setRespondeCode(RepsonseCode.TOKEN_DENIED);
 			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
 		}
-		if(credentials.getUsername().length() < 4){
+		if(credentials.getUsername().length() < 3){
 			ResourceIdResponse response = new ResourceIdResponse();
-			response.setMessage("Username has to have at least 4 characters");
+			response.setMessage("Username has to have at least 3 characters");
 			response.setRespondeCode(RepsonseCode.REGISTER_DENIED);
 			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 		}

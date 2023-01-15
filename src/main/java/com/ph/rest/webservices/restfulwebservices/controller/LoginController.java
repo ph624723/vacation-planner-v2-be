@@ -67,7 +67,7 @@ public class LoginController {
                                         BindingResult bindingResult){
         if(bindingResult.hasErrors()){
             ModelAndView model = new ModelAndView("Generic/register");
-            credentials.setErrorText("Username has to have at least 4 characters");
+            credentials.setErrorText("Username has to have at least 3 characters");
             model.addObject("credentials", credentials);
             return model;
         }
