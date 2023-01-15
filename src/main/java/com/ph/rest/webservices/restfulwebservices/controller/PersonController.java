@@ -35,11 +35,9 @@ public class PersonController {
 			@RequestHeader("Authorization")
 			String authKey){
 		if(!AuthService.isTokenValid(authKey)){
-			PersonListResponse response = new PersonListResponse();
-			response.setMessage("Authorization key is invalid");
-			response.setRespondeCode(RepsonseCode.TOKEN_DENIED);
-			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+			return AuthService.unauthorizedResponse(new PersonListResponse());
 		}
+
 
 		List<Person> results = repository.findAll().stream().map(x -> Person.fromEntity(x)).collect(Collectors.toList());
 		PersonListResponse response = new PersonListResponse();
@@ -58,10 +56,7 @@ public class PersonController {
 			@RequestHeader("Authorization")
 			String authKey){
 		if(!AuthService.isTokenValid(authKey)){
-			PersonResponse response = new PersonResponse();
-			response.setMessage("Authorization key is invalid");
-			response.setRespondeCode(RepsonseCode.TOKEN_DENIED);
-			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+			return AuthService.unauthorizedResponse(new PersonResponse());
 		}
 
 		if(repository.existsById(id)){
@@ -91,10 +86,7 @@ public class PersonController {
 			@RequestHeader("Authorization")
 			String authKey){
 		if(!AuthService.isTokenValid(authKey)){
-			ResourceIdResponse response = new ResourceIdResponse();
-			response.setMessage("Authorization key is invalid");
-			response.setRespondeCode(RepsonseCode.TOKEN_DENIED);
-			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+			return AuthService.unauthorizedResponse(new ResourceIdResponse<Long>());
 		}
 
 		if(person != null){

@@ -2,7 +2,11 @@ package com.ph.service;
 
 import com.ph.model.ToManySessionsException;
 import com.ph.rest.webservices.restfulwebservices.model.AuthToken;
+import com.ph.rest.webservices.restfulwebservices.model.RepsonseCode;
+import com.ph.rest.webservices.restfulwebservices.model.Response;
 import lombok.Getter;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -60,5 +64,11 @@ public class AuthService {
                 System.out.println("Removed token");
             }
         }
+    }
+
+    public static <T extends Response> ResponseEntity<T> unauthorizedResponse(T template){
+        template.setMessage("Authorization key is invalid");
+        template.setRespondeCode(RepsonseCode.TOKEN_DENIED);
+        return new ResponseEntity<>(template, HttpStatus.UNAUTHORIZED);
     }
 }

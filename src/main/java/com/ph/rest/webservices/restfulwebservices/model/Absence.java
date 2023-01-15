@@ -12,6 +12,7 @@ import lombok.Setter;
 
 import javax.validation.constraints.Null;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 @ApiModel(description = "Meant to store absent times for individual users where no further plans are desired. \n" +

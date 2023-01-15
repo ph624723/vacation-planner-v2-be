@@ -37,10 +37,9 @@ public class AbsenceController implements IController<Absence,Long> {
 			@RequestHeader("Authorization")
 			String authKey){
 		if(!AuthService.isTokenValid(authKey)){
-			AbsenceListResponse response = new AbsenceListResponse();
-			response.setMessage("Authorization key is invalid");
-			response.setRespondeCode(RepsonseCode.TOKEN_DENIED);
-			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+			if(!AuthService.isTokenValid(authKey)){
+				return AuthService.unauthorizedResponse(new AbsenceListResponse());
+			}
 		}
 
 		List<Absence> results = repository.findAll().stream().map(x -> Absence.fromEntity(x)).collect(Collectors.toList());
@@ -60,10 +59,7 @@ public class AbsenceController implements IController<Absence,Long> {
 			@RequestHeader("Authorization")
 			String authKey){
 		if(!AuthService.isTokenValid(authKey)){
-			AbsenceListResponse response = new AbsenceListResponse();
-			response.setMessage("Authorization key is invalid");
-			response.setRespondeCode(RepsonseCode.TOKEN_DENIED);
-			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+			return AuthService.unauthorizedResponse(new AbsenceListResponse());
 		}
 
 		if(personRepository.existsById(personId)){
@@ -103,10 +99,7 @@ public class AbsenceController implements IController<Absence,Long> {
 			@RequestHeader("Authorization")
 			String authKey){
 		if(!AuthService.isTokenValid(authKey)){
-			TimeSpanListResponse response = new TimeSpanListResponse();
-			response.setMessage("Authorization key is invalid");
-			response.setRespondeCode(RepsonseCode.TOKEN_DENIED);
-			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+			return AuthService.unauthorizedResponse(new TimeSpanListResponse());
 		}
 
 		List<PersonEntity> persons = personRepository.findAllById(personIds);
@@ -156,10 +149,7 @@ public class AbsenceController implements IController<Absence,Long> {
 			@RequestHeader("Authorization")
 			String authKey){
 		if(!AuthService.isTokenValid(authKey)){
-			TimeSpanListResponse response = new TimeSpanListResponse();
-			response.setMessage("Authorization key is invalid");
-			response.setRespondeCode(RepsonseCode.TOKEN_DENIED);
-			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+			return AuthService.unauthorizedResponse(new TimeSpanListResponse());
 		}
 
 		TimeSpanListResponse response = new TimeSpanListResponse();
@@ -189,10 +179,7 @@ public class AbsenceController implements IController<Absence,Long> {
 			@RequestHeader("Authorization")
 			String authKey){
 		if(!AuthService.isTokenValid(authKey)){
-			AbsenceResponse response = new AbsenceResponse();
-			response.setMessage("Authorization key is invalid");
-			response.setRespondeCode(RepsonseCode.TOKEN_DENIED);
-			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+			return AuthService.unauthorizedResponse(new AbsenceResponse());
 		}
 
 		if(repository.existsById(id)){
@@ -218,10 +205,7 @@ public class AbsenceController implements IController<Absence,Long> {
 			@RequestHeader("Authorization")
 			String authKey) {
 		if(!AuthService.isTokenValid(authKey)){
-			Response response = new Response();
-			response.setMessage("Authorization key is invalid");
-			response.setRespondeCode(RepsonseCode.TOKEN_DENIED);
-			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+			return AuthService.unauthorizedResponse(new Response());
 		}
 
 		if(repository.existsById(id)){
@@ -249,10 +233,7 @@ public class AbsenceController implements IController<Absence,Long> {
 			@RequestHeader("Authorization")
 			String authKey){
 		if(!AuthService.isTokenValid(authKey)){
-			ResourceIdResponse response = new ResourceIdResponse();
-			response.setMessage("Authorization key is invalid");
-			response.setRespondeCode(RepsonseCode.TOKEN_DENIED);
-			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+			return AuthService.unauthorizedResponse(new ResourceIdResponse<Long>());
 		}
 
 		if(absence != null){
@@ -280,18 +261,22 @@ public class AbsenceController implements IController<Absence,Long> {
 			@RequestHeader("Authorization")
 			String authKey){
 		if(!AuthService.isTokenValid(authKey)){
-			ResourceIdResponse response = new ResourceIdResponse();
-			response.setMessage("Authorization key is invalid");
-			response.setRespondeCode(RepsonseCode.TOKEN_DENIED);
-			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+			return AuthService.unauthorizedResponse(new ResourceIdResponse<Long>());
 		}
 
-		return saveAbsence(absence, null);
+		if(absence != null){
+			return saveAbsence(absence, null);
+		}else{
+			ResourceIdResponse response = new ResourceIdResponse();
+			response.setRespondeCode(RepsonseCode.UPDATE_FAILED);
+			response.setMessage("Given absence was null");
+			return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
+		}
 	}
 
-	private ResponseEntity<ResourceIdResponse<Long>> saveAbsence(Absence absence, AbsenceEntity oldPerson){
+	private ResponseEntity<ResourceIdResponse<Long>> saveAbsence(Absence absence, AbsenceEntity oldAbsence){
 		try {
-			AbsenceEntity absenceEntity = absence.toEntity(oldPerson, personRepository);
+			AbsenceEntity absenceEntity = absence.toEntity(oldAbsence, personRepository);
 
 			AbsenceEntity absenceUpdated = repository.save(absenceEntity);
 

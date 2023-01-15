@@ -184,10 +184,7 @@ public class UserController implements IRootController<User,String>{
 			@ApiParam(value = "Bearer token for authentication", required = true)
 			String authKey){
 		if(!AuthService.isTokenValid(authKey)){
-			ResourceIdResponse response = new ResourceIdResponse();
-			response.setMessage("Authorization key is invalid");
-			response.setRespondeCode(RepsonseCode.TOKEN_DENIED);
-			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+			return AuthService.unauthorizedResponse(new ResourceIdResponse<String>());
 		}
 		if(credentials.getUsername().length() < 3){
 			ResourceIdResponse response = new ResourceIdResponse();

@@ -27,6 +27,7 @@ public class WebSecurityConfig  extends WebSecurityConfigurerAdapter {
                     "/",
                     "/persons/**",
                     "/absences/**",
+                    "/events/**",
                     "/users/**",
                     "/auth/**",
                     "/register/**").permitAll()
