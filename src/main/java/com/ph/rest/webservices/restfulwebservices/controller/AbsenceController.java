@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -53,31 +54,38 @@ public class AbsenceController implements IController<Absence,Long> {
 	}
 
 	@ApiOperation(value = "Gets all stored absences for the specified person",tags = {"Absences"})
-	@GetMapping("/person/{personId}")
-	public ResponseEntity<AbsenceListResponse> getByUser(
-			@ApiParam(value = "The user to get absences for", required = true)
+	@GetMapping("/person/{personIds}")
+	public ResponseEntity<AbsenceByPersonListResponse> getByUser(
+			@ApiParam(value = "The persons to get absences for. Comma separated list", required = true)
 			@PathVariable
-			Long personId,
-			@ApiParam(value = "Bearer token for authentification", required = true)
+			List<Long> personIds,
+			@ApiParam(value = "Bearer token for authentication", required = true)
 			@RequestHeader("Authorization")
 			String authKey){
 		if(!AuthService.isTokenValid(authKey)){
-			return AuthService.unauthorizedResponse(new AbsenceListResponse());
+			return AuthService.unauthorizedResponse(new AbsenceByPersonListResponse());
 		}
 
-		if(personRepository.existsById(personId)){
-			List<Absence> results = repository.findByPerson(personRepository.findById(personId).get()).stream().map(x -> Absence.fromEntity(x)).collect(Collectors.toList());
-			AbsenceListResponse response = new AbsenceListResponse();
-			response.setRespondeCode(RepsonseCode.OK);
-			response.setList(results);
-			return new ResponseEntity<>(response,HttpStatus.OK);
-		}else{
-			AbsenceListResponse response = new AbsenceListResponse();
-			response.setRespondeCode(RepsonseCode.UNKNOWN_ID);
-			response.setList(null);
-			response.setMessage(new PersonNotFoundException(personId).getMessage());
-			return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
+		AbsenceByPersonListResponse response = new AbsenceByPersonListResponse();
+		response.setList(new ArrayList<>());
+		for (Long personId: personIds) {
+			if(personRepository.existsById(personId)){
+				List<Absence> results = repository.findByPerson(personRepository.findById(personId).get()).stream().map(x -> Absence.fromEntity(x)).collect(Collectors.toList());
+				AbsenceList absenceList = new AbsenceList();
+				absenceList.setAbsences(results);
+				absenceList.setPersonId(personId);
+				response.getList().add(absenceList);
+			}else{
+				response = new AbsenceByPersonListResponse();
+				response.setRespondeCode(RepsonseCode.UNKNOWN_ID);
+				response.setMessage(new PersonNotFoundException(personId).getMessage());
+				return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
+			}
 		}
+
+		response.setRespondeCode(RepsonseCode.OK);
+		response.setMessage("Considered person ids: "+personIds.stream().map(x -> x.toString()).collect(Collectors.joining(", ")));
+		return new ResponseEntity<>(response,HttpStatus.OK);
 	}
 
 	@ApiOperation(value="Gets time-slots without absences for a comma list of persons",
