@@ -39,7 +39,7 @@ public class UserService {
         User user = new User();
         user.setName(credentials.getUsername());
         String passwordPlain = AuthService.generatePassword(credentials.getUsername());
-        user.setPassword(HashService.MD5(passwordPlain));
+        user.setPassword(passwordPlain);
         user.setPerson(person);
         ResourceIdResponse<String> response = saveUser(user,null);
         System.out.println(emailService.sendSimpleMail(credentials.getContact(), "Vacation Planner - Initial Credentials",
