@@ -62,7 +62,7 @@ public class AbsenceEntity {
 	}
 
 	public TimeSpan asTimeSpan(){
-		return new TimeSpan(startDate,endDate);
+		return new TimeSpan(startDate,endDate,description);
 	}
 
 	public AbsenceEntity trimDescription(){

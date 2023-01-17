@@ -1,6 +1,7 @@
 package com.ph.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.time.DateUtils;
@@ -11,6 +12,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -24,6 +26,11 @@ public class TimeSpan {
     @Setter
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Date end;
+
+    @Getter
+    @Setter
+    @JsonIgnore
+    private String name;
 
     public boolean includes(Date date){
         return date != null && start.before(date) && end.after(date);
@@ -63,6 +70,11 @@ public class TimeSpan {
         }
     }
 
+    public TimeSpan (Date start, Date end, String name){
+        this(start, end);
+        this.name = name;
+    }
+
     public TimeSpan(){
 
     }
@@ -74,5 +86,23 @@ public class TimeSpan {
             this.start = tmp;
         }
         return this;
+    }
+
+    public static List<TimeSpan> fuse(List<TimeSpan> list){
+        list.sort(Comparator.comparing(TimeSpan::getStart));
+        List<TimeSpan> results = new ArrayList<>();
+        for (int i=0;i<list.size();i++){
+            TimeSpan timeSpan = list.get(i);
+            while (i<(list.size()-1) && !timeSpan.getEnd().before(list.get(i+1).getStart())){
+                i++;
+                timeSpan.setEnd(
+                        timeSpan.getEnd().after(list.get(i).getEnd()) ?
+                                timeSpan.getEnd() :
+                                list.get(i).getEnd());
+                timeSpan.setName(timeSpan.getName() + " / " +list.get(i).getName());
+            }
+            results.add(timeSpan);
+        }
+        return results;
     }
 }

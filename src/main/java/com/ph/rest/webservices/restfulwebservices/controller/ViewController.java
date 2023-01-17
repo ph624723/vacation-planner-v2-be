@@ -1,17 +1,17 @@
 package com.ph.rest.webservices.restfulwebservices.controller;
 
 import com.ph.model.PersonNotFoundException;
+import com.ph.model.TimeSpan;
 import com.ph.persistence.model.AbsenceEntity;
 import com.ph.persistence.model.PersonEntity;
 import com.ph.persistence.model.UserEntity;
 import com.ph.persistence.repository.AbsenceJpaRepository;
 import com.ph.persistence.repository.PersonJpaRepository;
 import com.ph.persistence.repository.UserJpaRepository;
-import com.ph.rest.webservices.restfulwebservices.model.Absence;
-import com.ph.rest.webservices.restfulwebservices.model.LoginCredentials;
-import com.ph.rest.webservices.restfulwebservices.model.Person;
+import com.ph.rest.webservices.restfulwebservices.model.*;
 import com.ph.service.AuthService;
 import com.ph.service.EmailServiceImpl;
+import com.ph.service.FreeTimeService;
 import com.ph.service.HashService;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,8 +26,15 @@ import org.springframework.web.servlet.ModelAndView;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.Valid;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Controller
@@ -195,6 +202,111 @@ public class ViewController {
     public ModelAndView  indexO0View(){
         return new ModelAndView("index-original-0");
     }
+
+    @GetMapping(value = "/events/test")
+    public ModelAndView  eventTestView(
+            @RequestParam("personIds")
+            List<Long> personIds,
+            @RequestParam("start")
+            java.sql.Date start,
+            @RequestParam("end")
+            java.sql.Date end
+    ) {
+        ModelAndView model = new ModelAndView("Event/test");
+
+        //java.sql.Date start = java.sql.Date.valueOf("2018-12-10");
+        //java.sql.Date end = java.sql.Date.valueOf("2019-01-30");
+
+        List<Month> months = new ArrayList<>();
+        LocalDate tmp = start.toLocalDate();
+        int firstDay = tmp.getDayOfMonth();
+        while (tmp.isBefore(end.toLocalDate())){
+            Month month = new Month();
+            month.setName(tmp.getMonth().name());
+
+            List<DayOfMonth> dates = new ArrayList<>();
+            int lastDay = tmp.getYear() == end.toLocalDate().getYear() && tmp.getMonth().equals(end.toLocalDate().getMonth()) ?
+                    end.toLocalDate().getDayOfMonth() :
+                    tmp.getMonth().length(tmp.isLeapYear());
+            for (int i =firstDay; i<=lastDay;i++) dates.add(new DayOfMonth(i));
+            month.setDays(dates);
+            tmp = tmp.plusMonths(1).withDayOfMonth(1);
+            firstDay = 1;
+            months.add(month);
+        }
+
+        List<PersonEntity> persons = personJpaRepository.findAllById(personIds);
+        model.addObject("months", months);
+
+        List<CalendarPerson> calendarPeople = new ArrayList<>();
+        for (PersonEntity person : persons) {
+            CalendarPerson calendarPerson = new CalendarPerson();
+            calendarPerson.setPerson(Person.fromEntity(person));
+            calendarPerson.setCalendarEvents(aggregateCalendarEvents(start, end, person.getAbsences().stream().map(x -> x.asTimeSpan()).collect(Collectors.toList())));
+            calendarPeople.add(calendarPerson);
+        }
+        model.addObject("people", calendarPeople);
+        model.addObject("duration", diffInDays(start,end)+1);
+
+        List<TimeSpan> freeTimes = FreeTimeService.findFreeTimes(new TimeSpan(start,end),
+                persons.stream().map(x -> x.getAbsences()).flatMap(List::stream).collect(Collectors.toList()));
+        freeTimes.forEach(x -> x.setName("free"));
+        model.addObject("freeTimes", aggregateCalendarEvents(start, end, freeTimes));
+
+        return model;
+    }
+
+    public List<CalendarEvent> aggregateCalendarEvents(java.sql.Date start,java.sql.Date end, List<TimeSpan> list){
+        List<CalendarEvent> results = new ArrayList<>();
+        list = TimeSpan.fuse(list.stream()
+                .filter(x -> !(x.getEnd().before(start) || x.getStart().after(end)))
+                .sorted(Comparator.comparing(TimeSpan::getStart))
+                .collect(Collectors.toList()));
+        if(!list.isEmpty()){
+
+            long startOffset = diffInDays(start, list.get(0).getStart());
+            if(startOffset > 0){
+                results.add(
+                        new CalendarEvent(startOffset)
+                );
+            } else if (startOffset < 0) {
+                list.get(0).setStart(start);
+            }
+            for (int i=0;i<list.size();i++) {
+                TimeSpan absence = list.get(i);
+                results.add(new CalendarEvent(
+                        diffInDays(absence.getStart(), absence.getEnd())+1,
+                        absence.getName()
+                ));
+                if(i < list.size()-1 && diffInDays(absence.getEnd(),list.get(i+1).getStart()) > 1){
+                    TimeSpan nextAbsence = list.get(i+1);
+                    results.add(new CalendarEvent(
+                            diffInDays(absence.getEnd(), nextAbsence.getStart())-1));
+                }
+            }
+            long endOffset = diffInDays(list.get(list.size()-1).getEnd(), end);
+            if(endOffset > 0){
+                results.add(
+                        new CalendarEvent(
+                                endOffset+1
+                        )
+                );
+            } else if (endOffset < 0) {
+                CalendarEvent lastEvent = results.get(results.size()-1);
+                lastEvent.setDuration(lastEvent.getDuration()+endOffset);
+            }
+        }else{
+            results.add(new CalendarEvent(diffInDays(start,end)+1));
+        }
+        return results;
+    }
+
+    public long diffInDays(Date a, Date b){
+        long diffInMillies = b.getTime() - a.getTime();
+        long diff = TimeUnit.DAYS.convert(Math.abs(diffInMillies), TimeUnit.MILLISECONDS);
+        return diff * (diffInMillies > 0 ? 1 : -1);
+    }
+
 
     @GetMapping(value = "/changePassword")
     public ModelAndView  changePwView(){
