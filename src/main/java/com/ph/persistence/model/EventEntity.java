@@ -24,7 +24,7 @@ public class EventEntity {
 
 	@Getter
 	@Setter
-	@ManyToMany
+	@ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.DETACH, CascadeType.MERGE})
 	@JoinColumn(name = "event_id")
 	private List<PersonEntity> persons;
 
