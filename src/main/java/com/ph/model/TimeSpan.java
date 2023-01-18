@@ -13,7 +13,7 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Date;
+import java.sql.Date;
 import java.util.List;
 
 public class TimeSpan {
@@ -50,10 +50,10 @@ public class TimeSpan {
         List<TimeSpan> result = new ArrayList<>();
         if(compare != null && this.intersects(compare)){
             if(compare.getStart().after(start)){
-                result.add(new TimeSpan(start, DateUtils.addDays(compare.getStart(),-1)));
+                result.add(new TimeSpan(start, Date.valueOf(compare.getStart().toLocalDate().minusDays(1))));
             }
             if(compare.getEnd().before(end)){
-                result.add(new TimeSpan(DateUtils.addDays(compare.getEnd(),1), end));
+                result.add(new TimeSpan(Date.valueOf(compare.getEnd().toLocalDate().plusDays(1)), end));
             }
         }else {
             result.add(this);

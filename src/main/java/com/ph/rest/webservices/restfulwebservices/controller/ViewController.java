@@ -8,6 +8,7 @@ import com.ph.persistence.model.UserEntity;
 import com.ph.persistence.repository.AbsenceJpaRepository;
 import com.ph.persistence.repository.PersonJpaRepository;
 import com.ph.persistence.repository.UserJpaRepository;
+import com.ph.rest.webservices.restfulwebservices.Service.TimeLineService;
 import com.ph.rest.webservices.restfulwebservices.model.*;
 import com.ph.service.AuthService;
 import com.ph.service.EmailServiceImpl;
@@ -50,6 +51,9 @@ public class ViewController {
 
     @Autowired
     UserJpaRepository userJpaRepository;
+
+    @Autowired
+    TimeLineService timeLineService;
 
     @GetMapping(value = "/persons")
     public ModelAndView  allPersonsView(){
@@ -203,108 +207,81 @@ public class ViewController {
         return new ModelAndView("index-original-0");
     }
 
+    @PostMapping(value = "/events/test")
+    public ModelAndView  eventPostTestView(
+            @ModelAttribute
+            EventPlannerConfig eventPlannerConfig
+    ){
+        return setupEventPlannerView(
+                eventPlannerConfig.getStart(),
+                eventPlannerConfig.getEnd(),
+                personJpaRepository.findAllById(eventPlannerConfig.getPersonIds()),
+                eventPlannerConfig.getIgnoreAbsenceToLevel()
+        );
+    }
+
     @GetMapping(value = "/events/test")
-    public ModelAndView  eventTestView(
-            @RequestParam("personIds")
+    public ModelAndView  eventGetTestView(
+            @RequestParam(value = "personIds", required = false)
             List<Long> personIds,
-            @RequestParam("start")
+            @RequestParam(value = "start", required = false)
             java.sql.Date start,
-            @RequestParam("end")
-            java.sql.Date end
+            @RequestParam(value = "end", required = false)
+            java.sql.Date end,
+            @RequestParam(value = "ignoreToLevel", required = false)
+            Integer ignoreToLevel
     ) {
+        if(start == null) start = new java.sql.Date(new Date().getTime());
+        if(end == null) end = java.sql.Date.valueOf(start.toLocalDate().plusDays(20));
+
+        if(ignoreToLevel == null) ignoreToLevel = -1;
+
+        List<PersonEntity> persons = personJpaRepository.findAllById(personIds != null ? personIds : new ArrayList<>());
+
+        return setupEventPlannerView(start, end, persons, ignoreToLevel);
+    }
+
+    private ModelAndView setupEventPlannerView(java.sql.Date start, java.sql.Date end, List<PersonEntity> persons, int ignoreToLevel){
         ModelAndView model = new ModelAndView("Event/test");
 
-        //java.sql.Date start = java.sql.Date.valueOf("2018-12-10");
-        //java.sql.Date end = java.sql.Date.valueOf("2019-01-30");
+        // setup dialog
+        model.addObject("selectablePersons",personJpaRepository.findAll().stream()
+                .map(x -> Person.fromEntity(x))
+                .collect(Collectors.toList()));
+        EventPlannerConfig eventPlannerConfig = new EventPlannerConfig();
+        eventPlannerConfig.setPersonIds(persons.stream().map(x -> x.getId()).collect(Collectors.toList()));
+        eventPlannerConfig.setIgnoreAbsenceToLevel(ignoreToLevel);
+        eventPlannerConfig.setStart(start);
+        eventPlannerConfig.setEnd(end);
+        model.addObject("eventPlannerConfig",eventPlannerConfig);
+        model.addObject("selectableImportances", AbsenceEntity.Importance.values());
 
-        List<Month> months = new ArrayList<>();
-        LocalDate tmp = start.toLocalDate();
-        int firstDay = tmp.getDayOfMonth();
-        while (tmp.isBefore(end.toLocalDate())){
-            Month month = new Month();
-            month.setName(tmp.getMonth().name());
 
-            List<DayOfMonth> dates = new ArrayList<>();
-            int lastDay = tmp.getYear() == end.toLocalDate().getYear() && tmp.getMonth().equals(end.toLocalDate().getMonth()) ?
-                    end.toLocalDate().getDayOfMonth() :
-                    tmp.getMonth().length(tmp.isLeapYear());
-            for (int i =firstDay; i<=lastDay;i++) dates.add(new DayOfMonth(i));
-            month.setDays(dates);
-            tmp = tmp.plusMonths(1).withDayOfMonth(1);
-            firstDay = 1;
-            months.add(month);
-        }
-
-        List<PersonEntity> persons = personJpaRepository.findAllById(personIds);
-        model.addObject("months", months);
+        // free times table
+        model.addObject("months", timeLineService.generateMonths(start,end));
 
         List<CalendarPerson> calendarPeople = new ArrayList<>();
         for (PersonEntity person : persons) {
             CalendarPerson calendarPerson = new CalendarPerson();
             calendarPerson.setPerson(Person.fromEntity(person));
-            calendarPerson.setCalendarEvents(aggregateCalendarEvents(start, end, person.getAbsences().stream().map(x -> x.asTimeSpan()).collect(Collectors.toList())));
+            calendarPerson.setCalendarEvents(timeLineService.aggregateCalendarEvents(start, end, person.getAbsences().stream()
+                    .filter(x -> x.getLevel() > ignoreToLevel)
+                    .map(x -> x.asTimeSpan()).collect(Collectors.toList())));
             calendarPeople.add(calendarPerson);
         }
         model.addObject("people", calendarPeople);
-        model.addObject("duration", diffInDays(start,end)+1);
+        model.addObject("duration", timeLineService.diffInDays(start,end)+1);
 
         List<TimeSpan> freeTimes = FreeTimeService.findFreeTimes(new TimeSpan(start,end),
-                persons.stream().map(x -> x.getAbsences()).flatMap(List::stream).collect(Collectors.toList()));
+                        persons.stream().map(x -> x.getAbsences()).flatMap(List::stream)
+                        .filter(x -> x.getLevel() > ignoreToLevel)
+                        .collect(Collectors.toList()));
         freeTimes.forEach(x -> x.setName("free"));
-        model.addObject("freeTimes", aggregateCalendarEvents(start, end, freeTimes));
+        freeTimes.forEach(x -> System.out.println("-------------- "+x.getEnd()));
+        System.out.println("-------------- "+end);
+        model.addObject("freeTimes", timeLineService.aggregateCalendarEvents(start, end, freeTimes));
 
         return model;
-    }
-
-    public List<CalendarEvent> aggregateCalendarEvents(java.sql.Date start,java.sql.Date end, List<TimeSpan> list){
-        List<CalendarEvent> results = new ArrayList<>();
-        list = TimeSpan.fuse(list.stream()
-                .filter(x -> !(x.getEnd().before(start) || x.getStart().after(end)))
-                .sorted(Comparator.comparing(TimeSpan::getStart))
-                .collect(Collectors.toList()));
-        if(!list.isEmpty()){
-
-            long startOffset = diffInDays(start, list.get(0).getStart());
-            if(startOffset > 0){
-                results.add(
-                        new CalendarEvent(startOffset)
-                );
-            } else if (startOffset < 0) {
-                list.get(0).setStart(start);
-            }
-            for (int i=0;i<list.size();i++) {
-                TimeSpan absence = list.get(i);
-                results.add(new CalendarEvent(
-                        diffInDays(absence.getStart(), absence.getEnd())+1,
-                        absence.getName()
-                ));
-                if(i < list.size()-1 && diffInDays(absence.getEnd(),list.get(i+1).getStart()) > 1){
-                    TimeSpan nextAbsence = list.get(i+1);
-                    results.add(new CalendarEvent(
-                            diffInDays(absence.getEnd(), nextAbsence.getStart())-1));
-                }
-            }
-            long endOffset = diffInDays(list.get(list.size()-1).getEnd(), end);
-            if(endOffset > 0){
-                results.add(
-                        new CalendarEvent(
-                                endOffset+1
-                        )
-                );
-            } else if (endOffset < 0) {
-                CalendarEvent lastEvent = results.get(results.size()-1);
-                lastEvent.setDuration(lastEvent.getDuration()+endOffset);
-            }
-        }else{
-            results.add(new CalendarEvent(diffInDays(start,end)+1));
-        }
-        return results;
-    }
-
-    public long diffInDays(Date a, Date b){
-        long diffInMillies = b.getTime() - a.getTime();
-        long diff = TimeUnit.DAYS.convert(Math.abs(diffInMillies), TimeUnit.MILLISECONDS);
-        return diff * (diffInMillies > 0 ? 1 : -1);
     }
 
 
