@@ -15,61 +15,42 @@
                     Title
                 </div>
             </div>
-
-            <div class="mdl-shadow--2dp mdl-color--white mdl-cell mdl-cell--8-col centerContentBox"
-                 th:if="${person != null}">
-                <div class="mdl-typography--text-center">
-                    <div class="mdl-typography--title"
-                         th:text="${person.name}"/>
-                    <br/>
-                    <div th:text="${person.contact}"/>
+            <div th:fragment="absenceTable">
+                <div class="mdl-shadow--2dp mdl-color--white mdl-cell mdl-cell--8-col centerContentTableBox">
+                    <table class="mdl-data-table mdl-js-data-table">
+                        <thead>
+                        <tr>
+                            <th th:if="${person == null}" class="mdl-data-table__cell--non-numeric"> Person</th>
+                            <th class="mdl-data-table__cell--non-numeric"> Start </th>
+                            <th class="mdl-data-table__cell--non-numeric"> Description </th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:if="${absences.empty}">
+                            <td class="mdl-data-table__cell--non-numeric"
+                                colspan="2"> No Absence Available </td>
+                        </tr>
+                        <tr th:each="absence : ${absences}" style="cursor: pointer"
+                            th:onclick="'javascript:openEditAbsence(\'' + ${absence.id} + '\');'">
+                            <td th:if="${person == null}" class="mdl-data-table__cell--non-numeric"><span th:text="${absence.person.name}"> Person </span></td>
+                            <td class="mdl-data-table__cell--non-numeric"><span th:text="${absence.startDate}"> Start </span></td>
+                            <td class="mdl-data-table__cell--non-numeric"><span th:text="${absence.description}"> Description </span></td>
+                        </tr>
+                        </tbody>
+                    </table>
                 </div>
                 <br/>
-                <div class="mdl-typography--text-right">
-                    <button type="button"
-                            class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
-                            th:onclick="'javascript:openEditPerson(\'' + ${person.id} + '\');'">
-                        Edit
-                    </button>
-                </div>
-            </div>
-            <br/>
-            <div class="mdl-shadow--2dp mdl-color--white mdl-cell mdl-cell--8-col centerContentTableBox">
-                <table class="mdl-data-table mdl-js-data-table">
-                    <thead>
-                    <tr>
-                        <th th:if="${person == null}"
-                            class="mdl-data-table__cell--non-numeric"> Person</th>
-                        <th class="mdl-data-table__cell--non-numeric"> Start </th>
-                        <th class="mdl-data-table__cell--non-numeric"> Description </th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:if="${absences.empty}">
-                        <td colspan="2"> No Absence Available </td>
-                    </tr>
-                    <tr th:each="absence : ${absences}" style="cursor: pointer"
-                        th:onclick="'javascript:openEditAbsence(\'' + ${absence.id} + '\');'">
-                        <td th:if="${person == null}"
-                            class="mdl-data-table__cell--non-numeric"><span th:text="${absence.person.name}"> Person </span></td>
-                        <td class="mdl-data-table__cell--non-numeric"><span th:text="${absence.startDate}"> Start </span></td>
-                        <td class="mdl-data-table__cell--non-numeric"><span th:text="${absence.description}"> Description </span></td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-            <br/>
 
-            <button type="button"
-                    class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored staticBottomRight"
-                    th:onclick="'javascript:openAddAbsence(\'' + ${personId} + '\');'"
-                    id="tt1">
-                <div class="mdl-tooltip" data-mdl-for="tt1">
-                    Add absence
-                </div>
-                <i class="material-icons">add</i>
-            </button>
-
+                <button type="button"
+                        class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored staticBottomRight"
+                        th:onclick="'javascript:openAddAbsence(\'' + ${personId} + '\');'"
+                        id="tt1">
+                    <div class="mdl-tooltip" data-mdl-for="tt1">
+                        Add absence
+                    </div>
+                    <i class="material-icons">add</i>
+                </button>
+            </div>
 
         </div>
         <footer th:replace="index :: footerContent"> </footer>

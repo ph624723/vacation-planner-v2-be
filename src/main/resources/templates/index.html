@@ -40,16 +40,22 @@
         location.href = "/view/persons/edit?personId=" + value;
       }
       function openAbsencesForPerson(value) {
-        location.href = "/view/absences?personId=" + value;
+        location.href = "/view/persons/show?personId=" + value;
       }
       function openDeleteAbsence(value) {
         location.href = "/view/absences/delete?absenceId="+value;
       }
-      function openAddEvent(start,end) {
-        location.href = "/view/events/add?start="+start+"&end="+end;
+      function openPlanEvent() {
+        location.href = "/view/events/plan";
       }
       function openEditEvent(value) {
         location.href = "/view/events/plan?eventId=" + value;
+      }
+      function openDeleteEvent(value) {
+        location.href = "/view/events/delete?eventId=" + value;
+      }
+      function openShowEvent(value) {
+        location.href = "/view/events/show?eventId=" + value;
       }
     </script>
     <style>

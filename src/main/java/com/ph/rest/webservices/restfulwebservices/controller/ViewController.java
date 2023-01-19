@@ -84,30 +84,51 @@ public class ViewController {
         return "Person/confirm";
     }
 
-    @GetMapping(value = "/absences")
-    public ModelAndView  allAbsencesView(
-            @RequestParam(required = false)
+    @GetMapping(value = "/persons/show")
+    public ModelAndView  showPersonView(
+            @RequestParam
             Long personId
     ){
-        ModelAndView model = new ModelAndView("Absence/list");
+        ModelAndView model = new ModelAndView("Person/show");
         String titleText;
         List<AbsenceEntity> absences;
         PersonEntity person = null;
-        if(personId == null){
-            absences = absenceJpaRepository.findAll();
-            titleText = "all persons";
-        }else{
-            person = personJpaRepository.findById(personId).get();
-            absences = absenceJpaRepository.findByPerson(person);
-            titleText = person.getName();
-        }
+
+        person = personJpaRepository.findById(personId).get();
+        absences = absenceJpaRepository.findByPerson(person);
+        List<Event> events = eventJpaRepository.findAll().stream()
+                .filter(x -> x.getPersons().stream().anyMatch(y -> y.getId().equals(personId)))
+                .sorted(Comparator.comparing(EventEntity::getStartDate))
+                .map(x -> Event.fromEntity(x))
+                .collect(Collectors.toList());
+        titleText = person.getName();
+
+        absences = absences.stream().map(x -> x.trimDescription()).sorted(Comparator.comparing(AbsenceEntity::getStartDate)).collect(Collectors.toList());
+
+        model.addObject("absences", absences);
+        model.addObject("events", events);
+        model.addObject("titleText", titleText);
+        model.addObject("person", person);
+        model.addObject("personId", personId);
+
+        return model;
+    }
+
+    @GetMapping(value = "/absences")
+    public ModelAndView  allAbsencesView(){
+        ModelAndView model = new ModelAndView("Absence/list");
+        String titleText;
+        List<AbsenceEntity> absences;
+        absences = absenceJpaRepository.findAll();
+        titleText = "all persons";
+
 
         absences = absences.stream().map(x -> x.trimDescription()).sorted(Comparator.comparing(AbsenceEntity::getStartDate)).collect(Collectors.toList());
 
         model.addObject("absences", absences);
         model.addObject("titleText", titleText);
-        model.addObject("person", person);
-        model.addObject("personId", personId == null ? -1 : personId);
+        model.addObject("person", null);
+        model.addObject("personId", -1);
 
         return model;
     }
@@ -200,13 +221,24 @@ public class ViewController {
     //@GetMapping(value = "/index-o0")
     //public ModelAndView  indexO0View(){return new ModelAndView("index-original-0"); }
 
+    @GetMapping(value = "/events/delete")
+    public ModelAndView  deleteEventView(
+            @RequestParam()
+            Long eventId
+    ){
+        ModelAndView model = new ModelAndView("redirect:/view/home");
+
+        EventEntity eventEntity = eventJpaRepository.findById(eventId).get();
+        eventJpaRepository.delete(eventEntity);
+
+        return model;
+    }
+
     @GetMapping(value = "/events/show")
     public ModelAndView  showEventView(
             @RequestParam()
             Long eventId
     ){
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
         ModelAndView model = new ModelAndView("Event/show");
 
         EventEntity eventEntity = eventJpaRepository.findById(eventId).get();

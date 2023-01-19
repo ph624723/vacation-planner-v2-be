@@ -11,7 +11,7 @@
         <div class="page-content">
             <div class="title-screen-section mdl-typography--text-center">
                 <div class="mdl-typography--display-1-color-contrast pageTitle"
-                     th:text="'Absences for '+${titleText}">
+                     th:text="'User: '+${titleText}">
                     Title
                 </div>
             </div>
@@ -34,41 +34,53 @@
                 </div>
             </div>
             <br/>
-            <div class="mdl-shadow--2dp mdl-color--white mdl-cell mdl-cell--8-col centerContentTableBox">
-                <table class="mdl-data-table mdl-js-data-table">
-                    <thead>
-                    <tr>
-                        <th th:if="${person == null}"
-                            class="mdl-data-table__cell--non-numeric"> Person</th>
-                        <th class="mdl-data-table__cell--non-numeric"> Start </th>
-                        <th class="mdl-data-table__cell--non-numeric"> Description </th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:if="${absences.empty}">
-                        <td colspan="2"> No Absence Available </td>
-                    </tr>
-                    <tr th:each="absence : ${absences}" style="cursor: pointer"
-                        th:onclick="'javascript:openEditAbsence(\'' + ${absence.id} + '\');'">
-                        <td th:if="${person == null}"
-                            class="mdl-data-table__cell--non-numeric"><span th:text="${absence.person.name}"> Person </span></td>
-                        <td class="mdl-data-table__cell--non-numeric"><span th:text="${absence.startDate}"> Start </span></td>
-                        <td class="mdl-data-table__cell--non-numeric"><span th:text="${absence.description}"> Description </span></td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-            <br/>
-
-            <button type="button"
-                    class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored staticBottomRight"
-                    th:onclick="'javascript:openAddAbsence(\'' + ${personId} + '\');'"
-                    id="tt1">
-                <div class="mdl-tooltip" data-mdl-for="tt1">
-                    Add absence
+            <div class="title-screen-section mdl-typography--text-center">
+                <div class="mdl-typography--headline"
+                     th:text="'Events'">
+                    Title
                 </div>
-                <i class="material-icons">add</i>
-            </button>
+            </div>
+            <div>
+                <div class="mdl-shadow--2dp mdl-color--white mdl-cell mdl-cell--8-col centerContentTableBox">
+                    <table class="mdl-data-table mdl-js-data-table">
+                        <thead>
+                        <tr>
+                            <th class="mdl-data-table__cell--non-numeric"> Start </th>
+                            <th class="mdl-data-table__cell--non-numeric"> Description </th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:if="${events.empty}">
+                            <td colspan="2"
+                                class="mdl-data-table__cell--non-numeric"> No Event Available </td>
+                        </tr>
+                        <tr th:each="event : ${events}" style="cursor: pointer"
+                            th:onclick="'javascript:openShowEvent(\'' + ${event.id} + '\');'">
+                            <td class="mdl-data-table__cell--non-numeric"><span th:text="${event.startDate}"> Start </span></td>
+                            <td class="mdl-data-table__cell--non-numeric"><span th:text="${event.description}"> Description </span></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <br/>
+
+                <button type="button"
+                        class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored staticBottomRight"
+                        th:onclick="'javascript:openPlanEvent();'"
+                        id="tt2">
+                    <div class="mdl-tooltip" data-mdl-for="tt2">
+                        Plan event
+                    </div>
+                    <i class="material-icons">add</i>
+                </button>
+            </div>
+            <div class="title-screen-section mdl-typography--text-center">
+                <div class="mdl-typography--headline"
+                     th:text="'Absences'">
+                    Title
+                </div>
+            </div>
+            <div th:replace="Absence/list :: absenceTable"/>
 
 
         </div>
