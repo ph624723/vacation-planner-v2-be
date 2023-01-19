@@ -3,6 +3,8 @@ package com.ph.rest.webservices.restfulwebservices.model;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.sql.Date;
+
 public class CalendarEvent {
     @Getter
     @Setter
@@ -12,6 +14,14 @@ public class CalendarEvent {
     @Setter
     private String name;
 
+    @Getter
+    @Setter
+    private Date start;
+
+    @Getter
+    @Setter
+    private Date end;
+
     public CalendarEvent(long d){
         duration = d;
     }
@@ -19,5 +29,12 @@ public class CalendarEvent {
     public CalendarEvent(long d, String n){
         this(d);
         name = n;
+    }
+
+    public CalendarEvent(long d, String n, Date start, Date end){
+        this(d,n);
+        this.start = start;
+        this.end = end;
+
     }
 }

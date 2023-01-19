@@ -1,22 +1,20 @@
 package com.ph.rest.webservices.restfulwebservices.controller;
 
+import com.ph.model.EmailFailedException;
 import com.ph.model.PersonNotFoundException;
 import com.ph.model.TimeSpan;
-import com.ph.persistence.model.AbsenceEntity;
-import com.ph.persistence.model.PersonEntity;
-import com.ph.persistence.model.UserEntity;
+import com.ph.persistence.model.*;
 import com.ph.persistence.repository.AbsenceJpaRepository;
+import com.ph.persistence.repository.EventJpaRepository;
 import com.ph.persistence.repository.PersonJpaRepository;
 import com.ph.persistence.repository.UserJpaRepository;
+import com.ph.rest.webservices.restfulwebservices.Service.EventService;
 import com.ph.rest.webservices.restfulwebservices.Service.TimeLineService;
 import com.ph.rest.webservices.restfulwebservices.model.*;
-import com.ph.service.AuthService;
-import com.ph.service.EmailServiceImpl;
 import com.ph.service.FreeTimeService;
 import com.ph.service.HashService;
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -26,16 +24,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.temporal.ChronoUnit;
+import java.sql.Date;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Controller
@@ -50,10 +43,16 @@ public class ViewController {
     AbsenceJpaRepository absenceJpaRepository;
 
     @Autowired
+    EventJpaRepository eventJpaRepository;
+
+    @Autowired
     UserJpaRepository userJpaRepository;
 
     @Autowired
     TimeLineService timeLineService;
+
+    @Autowired
+    EventService eventService;
 
     @GetMapping(value = "/persons")
     public ModelAndView  allPersonsView(){
@@ -192,72 +191,139 @@ public class ViewController {
         return model;
     }
 
-    @GetMapping(value = "/index")
-    public ModelAndView  indexView(){
-        return new ModelAndView("index");
-    }
+    //@GetMapping(value = "/index")
+    //public ModelAndView  indexView(){return new ModelAndView("index");}
 
-    @GetMapping(value = "/index-o")
-    public ModelAndView  indexOView(){
-        return new ModelAndView("index-original");
-    }
+    //@GetMapping(value = "/index-o")
+    //public ModelAndView  indexOView(){ return new ModelAndView("index-original");}
 
-    @GetMapping(value = "/index-o0")
-    public ModelAndView  indexO0View(){
-        return new ModelAndView("index-original-0");
-    }
+    //@GetMapping(value = "/index-o0")
+    //public ModelAndView  indexO0View(){return new ModelAndView("index-original-0"); }
 
-    @PostMapping(value = "/events/test")
-    public ModelAndView  eventPostTestView(
-            @ModelAttribute
-            EventPlannerConfig eventPlannerConfig
+    @GetMapping(value = "/events/show")
+    public ModelAndView  showEventView(
+            @RequestParam()
+            Long eventId
     ){
-        return setupEventPlannerView(
-                eventPlannerConfig.getStart(),
-                eventPlannerConfig.getEnd(),
-                personJpaRepository.findAllById(eventPlannerConfig.getPersonIds()),
-                eventPlannerConfig.getIgnoreAbsenceToLevel()
-        );
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        ModelAndView model = new ModelAndView("Event/show");
+
+        EventEntity eventEntity = eventJpaRepository.findById(eventId).get();
+        Event event = Event.fromEntity(eventEntity);
+        List<Person> persons = eventEntity.getPersons().stream().map(x -> Person.fromEntity(x)).collect(Collectors.toList());
+
+        model.addObject("event", event);
+        model.addObject("persons", persons);
+
+        return model;
     }
 
-    @GetMapping(value = "/events/test")
-    public ModelAndView  eventGetTestView(
-            @RequestParam(value = "personIds", required = false)
-            List<Long> personIds,
-            @RequestParam(value = "start", required = false)
-            java.sql.Date start,
-            @RequestParam(value = "end", required = false)
-            java.sql.Date end,
-            @RequestParam(value = "ignoreToLevel", required = false)
-            Integer ignoreToLevel
+    @PostMapping(value = "/events/save")
+    public ModelAndView saveEvent(
+            @ModelAttribute
+            Event event,
+            HttpServletRequest request
+    ){
+        if(event.getDescription().isEmpty()){
+            ModelAndView model = setupEventPlannerView(event);
+            model.addObject("errorText", "Please add a description for the event.");
+            return model;
+        }
+        if(event.getPersonIds().isEmpty()){
+            ModelAndView model = setupEventPlannerView(event);
+            model.addObject("errorText", "Please add at least one person for the event.");
+            return model;
+        }
+
+        EventEntity oldEvent= null;
+        if(event.getId()!= null){
+            oldEvent = eventJpaRepository.findById(event.getId()).orElse(null);
+        }
+        try {
+            EventEntity eventEntity = event.toEntity(oldEvent, personJpaRepository);
+
+            System.out.println("eventEntity------------------ "+eventEntity.getDescription());
+            System.out.println("eventEntity------------------ "+eventEntity.getId());
+            System.out.println("eventEntity------------------ "+eventEntity.getStartDate());
+            System.out.println("eventEntity------------------ "+eventEntity.getEndDate());
+            System.out.println("eventEntity------------------ "+eventEntity.getEventPlannerConfig().getId());
+            System.out.println("eventEntity------------------ "+eventEntity.getEventPlannerConfig().getStart());
+            System.out.println("eventEntity------------------ "+eventEntity.getEventPlannerConfig().getEnd());
+            System.out.println("eventEntity------------------ "+eventEntity.getEventPlannerConfig().getIgnoreAbsenceToLevel());
+
+            eventEntity = eventJpaRepository.save(eventEntity);
+
+            String url = "http://vacationplannerv2-be-dev3.eba-pisehxks.us-east-1.elasticbeanstalk.com/view/events/show?eventId="+eventEntity.getId();
+
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String username = ((UserDetails)auth.getPrincipal()).getUsername();
+            PersonEntity personEntity = userJpaRepository.findById(username).get().getPersonData();
+
+            eventService.sendEmailNotifications(eventEntity,url,personEntity.getName());
+        }catch (PersonNotFoundException e){
+            return new ModelAndView("redirect:/view/home");
+        }
+
+        return new ModelAndView( "Event/confirm");
+    }
+
+    @PostMapping(value = "/events/plan")
+    public ModelAndView updateEventPlannerConfig(
+            @ModelAttribute
+            Event event
+    ){
+        return setupEventPlannerView(event);
+    }
+
+    @GetMapping(value = "/events/plan")
+    public ModelAndView  getEventPlannerView(
+            @RequestParam(value = "eventId", required = false)
+            Long eventId
     ) {
-        if(start == null) start = new java.sql.Date(new Date().getTime());
-        if(end == null) end = java.sql.Date.valueOf(start.toLocalDate().plusDays(20));
+        Event event;
+        if(eventId != null){
+            event = Event.fromEntity(eventJpaRepository.findById(eventId).get());
+        }else{
+            Date start = new java.sql.Date(new java.util.Date().getTime());
+            Date end = java.sql.Date.valueOf(start.toLocalDate().plusDays(20));
+            int ignoreToLevel = -1;
+            event = new Event();
 
-        if(ignoreToLevel == null) ignoreToLevel = -1;
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String username = ((UserDetails)auth.getPrincipal()).getUsername();
+            PersonEntity personEntity = userJpaRepository.findById(username).get().getPersonData();
+            event.setPersonIds(Arrays.asList(personEntity.getId()));
+            EventPlannerConfigEntity eventPlannerConfig = new EventPlannerConfigEntity();
+            eventPlannerConfig.setStart(start);
+            eventPlannerConfig.setEnd(end);
+            eventPlannerConfig.setIgnoreAbsenceToLevel(ignoreToLevel);
+            event.setEventPlannerConfig(eventPlannerConfig);
 
-        List<PersonEntity> persons = personJpaRepository.findAllById(personIds != null ? personIds : new ArrayList<>());
+            event.setStartDate(start);
+            event.setEndDate(end);
+        }
 
-        return setupEventPlannerView(start, end, persons, ignoreToLevel);
+        return setupEventPlannerView(event);
     }
 
-    private ModelAndView setupEventPlannerView(java.sql.Date start, java.sql.Date end, List<PersonEntity> persons, int ignoreToLevel){
+    private ModelAndView setupEventPlannerView(Event event){
         ModelAndView model = new ModelAndView("Event/test");
 
         // setup dialog
+        model.addObject("event_config",event);
         model.addObject("selectablePersons",personJpaRepository.findAll().stream()
                 .map(x -> Person.fromEntity(x))
                 .collect(Collectors.toList()));
-        EventPlannerConfig eventPlannerConfig = new EventPlannerConfig();
-        eventPlannerConfig.setPersonIds(persons.stream().map(x -> x.getId()).collect(Collectors.toList()));
-        eventPlannerConfig.setIgnoreAbsenceToLevel(ignoreToLevel);
-        eventPlannerConfig.setStart(start);
-        eventPlannerConfig.setEnd(end);
-        model.addObject("eventPlannerConfig",eventPlannerConfig);
         model.addObject("selectableImportances", AbsenceEntity.Importance.values());
 
 
         // free times table
+        java.sql.Date start =event.getEventPlannerConfig().getStart();
+        java.sql.Date end = event.getEventPlannerConfig().getEnd();
+        List<PersonEntity> persons = personJpaRepository.findAllById(event.getPersonIds());
+        int ignoreToLevel = event.getEventPlannerConfig().getIgnoreAbsenceToLevel();
+
         model.addObject("months", timeLineService.generateMonths(start,end));
 
         List<CalendarPerson> calendarPeople = new ArrayList<>();

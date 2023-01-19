@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="https://www.thymeleaf.org">
-<head th:insert="index :: head(titleText='Person Stored - Vacation Planner')">
+<head th:insert="index :: head(titleText='Plan Event - Vacation Planner')">
 </head>
 <body>
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
@@ -10,60 +10,55 @@
         <a name="top"></a>
         <div class="page-content">
             <div class="title-screen-section mdl-typography--text-center">
-                <div class="mdl-typography--display-1-color-contrast pageTitle">Event Test</div>
+                <div class="mdl-typography--display-1-color-contrast pageTitle">Plan Event</div>
             </div>
             <div class="mdl-shadow--2dp mdl-color--white mdl-cell mdl-cell--8-col centerContentBox">
-                <form th:action="@{/view/events/test}"
-                      th:object="${eventPlannerConfig}"
+                <div class="mdl-typography--headline mdl-typography--text-center pageTitle">
+                    Planner Configuration
+                </div>
+                <form th:action="@{/view/events/plan}"
+                      th:object="${event_config}"
                       method="post">
 
                     <div class="mdl-typography--text-center">
-                        <table>
-                            <tr>
-                                <td class="mdl-typography--text-left">
-                                    <span>Persons</span>
-                                </td>
-                                <td class="mdl-typography--text-left">
-                                    <span>Ignore Absences</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="mdl-typography--text-left">
-                                    <select class="form-control"
-                                            th:field="*{personIds}"
-                                            multiple>
-                                        <option th:each="person : ${selectablePersons}" th:value="${person.id}" th:text="${person.name}"></option>
-                                    </select>
-                                </td>
-                                <td class="mdl-typography--text-left">
-                                    <select class="form-control"
-                                            th:field="*{ignoreAbsenceToLevel}">
-                                        <option value="-1">Ignore nothing</option>
-                                        <option th:each="level : ${selectableImportances}" th:value="${level.level}" th:text="${level}"></option>
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="mdl-typography--text-left">
-                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                                        <input class="mdl-textfield__input"
-                                               type="date"
-                                               th:field="*{start}"
-                                               id="startField">
-                                        <label class="mdl-textfield__label" for="startField">Start</label>
-                                    </div>
-                                </td>
-                                <td class="mdl-typography--text-left">
-                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                                        <input class="mdl-textfield__input"
-                                               type="date"
-                                               th:field="*{end}"
-                                               id="endField">
-                                        <label class="mdl-textfield__label" for="endField">End</label>
-                                    </div>
-                                </td>
-                            </tr>
-                        </table>
+                        <div style="margin-bottom: 10px">
+                            <span>Persons</span>
+                            <br/>
+                            <select class="form-control"
+                                    th:field="*{personIds}"
+                                    multiple>
+                                <option th:each="person : ${selectablePersons}" th:value="${person.id}" th:text="${person.name}"></option>
+                            </select>
+                        </div>
+                        <div style="margin-bottom: 10px">
+                            <span>Ignore Absences</span>
+                            <br/>
+                            <select class="form-control"
+                                    th:field="*{eventPlannerConfig.ignoreAbsenceToLevel}">
+                                <option value="-1">Ignore nothing</option>
+                                <option th:each="level : ${selectableImportances}" th:value="${level.level}" th:text="${level}"></option>
+                            </select>
+                        </div>
+                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                            <input class="mdl-textfield__input"
+                                   type="date"
+                                   th:field="*{eventPlannerConfig.start}"
+                                   id="startField">
+                            <label class="mdl-textfield__label" for="startField">Timeframe start</label>
+                        </div>
+
+                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                            <input class="mdl-textfield__input"
+                                   type="date"
+                                   th:field="*{eventPlannerConfig.end}"
+                                   id="endField">
+                            <label class="mdl-textfield__label" for="endField">Timeframe end</label>
+                        </div>
+                        <input type="hidden" th:field="*{eventPlannerConfig.id}"/>
+                        <input type="hidden" th:field="*{startDate}"/>
+                        <input type="hidden" th:field="*{endDate}"/>
+                        <input type="hidden" th:field="*{id}"/>
+                        <input type="hidden" th:field="*{description}"/>
                     </div>
                     <div class="mdl-typography--text-right">
                         <button type="submit"
@@ -118,7 +113,8 @@
                         <td th:each="freeEvent : ${freeTimes}"
                             class="mdl-data-table__cell--non-numeric"
                             th:colspan="${freeEvent.duration}"
-                            th:style="${freeEvent.name} == null ? 'background: white' : 'background: green'">
+                            th:style="${freeEvent.name} == null ? 'background: white' : 'background: green'"
+                            th:attr="onclick=|openAddEvent('${freeEvent.start}','${freeEvent.end}')|">
                             <span th:text="${freeEvent.name}"> Name </span>
                         </td>
                     </tr>
@@ -126,9 +122,70 @@
                 </table>
             </div>
         </div>
+        <br/>
+        <div class="mdl-shadow--2dp mdl-color--white mdl-cell mdl-cell--8-col centerContentBox">
+            <a name="dialogCreate"></a>
+            <div class="mdl-typography--headline mdl-typography--text-center pageTitle"
+            th:text="${event_config.id} == null ? 'Create Event' : 'Edit Event'" >
+                Title
+            </div>
+            <div th:if="${errorText} != null">
+                <div class="mdl-typography--title mdl-typography--text-center pageTitle"
+                     th:text="${errorText}">
+                    Error
+                </div>
+            </div>
+            <form th:action="@{/view/events/save}"
+                  th:object="${event_config}"
+                  method="post">
+
+                <div class="mdl-typography--text-center">
+
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                        <input class="mdl-textfield__input"
+                               type="date"
+                               th:field="*{startDate}"
+                               th:min="*{eventPlannerConfig.start}"
+                               th:max="*{eventPlannerConfig.end}"
+                               id="startField2">
+                        <label class="mdl-textfield__label" for="startField2">From</label>
+                    </div>
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                        <input class="mdl-textfield__input"
+                               type="date"
+                               th:field="*{endDate}"
+                               th:min="*{eventPlannerConfig.start}"
+                               th:max="*{eventPlannerConfig.end}"
+                               id="endField2">
+                        <label class="mdl-textfield__label" for="endField2">To</label>
+                    </div>
+                    <br/>
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                        <textarea class="mdl-textfield__input" type="text" rows="3" maxrows="6"
+                                  id="descriptionField"
+                                    th:field="*{description}"></textarea>
+                        <label class="mdl-textfield__label" for="descriptionField">Description</label>
+                    </div>
+                    <input type="hidden" th:field="*{id}"/>
+                    <input type="hidden" th:field="*{personIds}"/>
+                    <input type="hidden" th:field="*{eventPlannerConfig.id}"/>
+                    <input type="hidden" th:field="*{eventPlannerConfig.start}"/>
+                    <input type="hidden" th:field="*{eventPlannerConfig.end}"/>
+                    <input type="hidden" th:field="*{eventPlannerConfig.ignoreAbsenceToLevel}"/>
+                </div>
+                <div class="mdl-typography--text-right">
+                    <button type="submit"
+                            class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
+                        Submit
+                    </button>
+                </div>
+            </form>
+        </div>
+        <br/>
         <footer th:replace="index :: footerContent"> </footer>
     </main>
 </div>
+<script src="/assets/js/eventConfigurer.js"></script>
 <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
 </body>
 </html>

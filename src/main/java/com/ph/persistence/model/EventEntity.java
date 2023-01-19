@@ -51,6 +51,12 @@ public class EventEntity {
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date updated;
 
+	@Getter
+	@Setter
+	@OneToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name="planner_config_id")
+	private EventPlannerConfigEntity eventPlannerConfig;
+
 	public EventEntity(){
 		persons = new ArrayList<>();
 	}

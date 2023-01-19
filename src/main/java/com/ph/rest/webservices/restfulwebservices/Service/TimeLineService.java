@@ -61,7 +61,9 @@ public class TimeLineService {
                 System.out.println("-------------add: "+absence.getName()+" "+ absence.getStart()+" "+absence.getEnd()+" "+(diffInDays(absence.getStart(), absence.getEnd())+1));
                 results.add(new CalendarEvent(
                         diffInDays(absence.getStart(), absence.getEnd())+1,
-                        absence.getName()
+                        absence.getName(),
+                        absence.getStart(),
+                        absence.getEnd()
                 ));
                 if(i < list.size()-1 && diffInDays(absence.getEnd(),list.get(i+1).getStart()) > 1){
                     TimeSpan nextAbsence = list.get(i+1);

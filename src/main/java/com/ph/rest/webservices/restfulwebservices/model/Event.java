@@ -4,13 +4,17 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.ph.model.PersonNotFoundException;
 import com.ph.persistence.model.AbsenceEntity;
 import com.ph.persistence.model.EventEntity;
+import com.ph.persistence.model.EventPlannerConfigEntity;
 import com.ph.persistence.model.PersonEntity;
 import com.ph.persistence.repository.PersonJpaRepository;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;
+import org.thymeleaf.util.DateUtils;
 
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -34,12 +38,15 @@ public class Event {
 	@Getter
 	@Setter
 	@JsonFormat(shape = JsonFormat.Shape.STRING)
-	private java.sql.Date startDate;
+	private Date startDate;
 	@ApiModelProperty(position = 3, required = true, value = "1993-05-24")
 	@Getter
 	@Setter
 	@JsonFormat(shape = JsonFormat.Shape.STRING)
-	private java.sql.Date endDate;
+	private Date endDate;
+	@Getter
+	@Setter
+	private EventPlannerConfigEntity eventPlannerConfig;
 
 	public static Event fromEntity(EventEntity entity){
 		Event event = new Event();
@@ -48,6 +55,7 @@ public class Event {
 		event.setDescription(entity.getDescription());
 		event.setStartDate(entity.getStartDate());
 		event.setEndDate(entity.getEndDate());
+		event.setEventPlannerConfig(entity.getEventPlannerConfig());
 		return event;
 	}
 
@@ -58,6 +66,7 @@ public class Event {
 		entity.setDescription(description);
 		entity.setStartDate(startDate);
 		entity.setEndDate(endDate);
+		entity.setEventPlannerConfig(eventPlannerConfig);
 		if(personIds != null){
 			entity.setPersons(new ArrayList<>());
 			for (Long personId :
