@@ -35,7 +35,7 @@ public class Person {
         person.setId(entity.getId());
         person.setName(entity.getName());
         person.setContact(entity.getContact());
-        person.setUserId(entity.getUser().getName());
+        person.setUserId(entity.getUser() != null ? entity.getUser().getName() : "");
         person.setRoleNames(entity.getRoles().stream().map(x -> x.getName()).collect(Collectors.toList()));
         //person.setEventIds(entity.getEvents().stream().map(x -> x.getId()).collect(Collectors.toList()));
         return person;

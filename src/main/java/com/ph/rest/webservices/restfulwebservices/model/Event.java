@@ -57,7 +57,7 @@ public class Event {
 		event.setStartDate(entity.getStartDate());
 		event.setEndDate(entity.getEndDate());
 		event.setEventPlannerConfig(entity.getEventPlannerConfig());
-		event.setGroupName(entity.getGroup().getName());
+		event.setGroupName(entity.getGroup() != null ? entity.getGroup().getName() : "");
 		return event;
 	}
 
