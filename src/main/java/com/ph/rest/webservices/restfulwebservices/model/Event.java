@@ -2,10 +2,7 @@ package com.ph.rest.webservices.restfulwebservices.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.ph.model.PersonNotFoundException;
-import com.ph.persistence.model.AbsenceEntity;
-import com.ph.persistence.model.EventEntity;
-import com.ph.persistence.model.EventPlannerConfigEntity;
-import com.ph.persistence.model.PersonEntity;
+import com.ph.persistence.model.*;
 import com.ph.persistence.repository.PersonJpaRepository;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -48,6 +45,10 @@ public class Event {
 	@Setter
 	private EventPlannerConfigEntity eventPlannerConfig;
 
+	@Getter
+	@Setter
+	private String groupName;
+
 	public static Event fromEntity(EventEntity entity){
 		Event event = new Event();
 		event.setId(entity.getId());
@@ -56,6 +57,7 @@ public class Event {
 		event.setStartDate(entity.getStartDate());
 		event.setEndDate(entity.getEndDate());
 		event.setEventPlannerConfig(entity.getEventPlannerConfig());
+		event.setGroupName(entity.getGroup().getName());
 		return event;
 	}
 
@@ -67,6 +69,7 @@ public class Event {
 		entity.setStartDate(startDate);
 		entity.setEndDate(endDate);
 		entity.setEventPlannerConfig(eventPlannerConfig);
+		entity.setGroup(new RoleEntity(groupName));
 		if(personIds != null){
 			entity.setPersons(new ArrayList<>());
 			for (Long personId :

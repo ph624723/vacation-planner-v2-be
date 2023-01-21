@@ -16,13 +16,23 @@
                 </div>
             </div>
 
-            <div class="mdl-shadow--2dp mdl-color--white mdl-cell mdl-cell--8-col centerContentBox"
-                 th:if="${person != null}">
+            <div class="mdl-shadow--2dp mdl-color--white mdl-cell mdl-cell--8-col centerContentBox">
                 <div class="mdl-typography--text-center">
                     <div class="mdl-typography--title"
                          th:text="${person.name}"/>
                     <br/>
                     <div th:text="${person.contact}"/>
+                    <br/>
+                    <div style="display : inline-block">
+                        Roles:
+                    </div>
+                    <div th:if="${person.roles.empty}"
+                         style="display : inline-block">
+                        No roles yet. Contact the admin to receive roles.
+                    </div>
+                    <div th:each="role : ${person.roles}"
+                         th:text="${role.name}"
+                         style="display : inline-block"/>
                 </div>
                 <br/>
                 <div class="mdl-typography--text-right">

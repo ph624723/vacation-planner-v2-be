@@ -59,6 +59,7 @@
                         <input type="hidden" th:field="*{endDate}"/>
                         <input type="hidden" th:field="*{id}"/>
                         <input type="hidden" th:field="*{description}"/>
+                        <input type="hidden" th:field="*{groupName}"/>
                     </div>
                     <div class="mdl-typography--text-right">
                         <button type="submit"
@@ -131,6 +132,7 @@
             </div>
             <div th:if="${errorText} != null">
                 <div class="mdl-typography--title mdl-typography--text-center pageTitle"
+                     style="color: red"
                      th:text="${errorText}">
                     Error
                 </div>
@@ -140,7 +142,14 @@
                   method="post">
 
                 <div class="mdl-typography--text-center">
-
+                    <div style="margin-bottom: 10px">
+                        <span>Group</span>
+                        <br/>
+                        <select class="form-control"
+                                th:field="*{groupName}">
+                            <option th:each="group : ${selectableGroups}" th:value="${group}" th:text="${group}"></option>
+                        </select>
+                    </div>
                     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                         <input class="mdl-textfield__input"
                                type="date"

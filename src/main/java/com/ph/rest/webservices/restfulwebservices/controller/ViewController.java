@@ -9,7 +9,9 @@ import com.ph.persistence.repository.EventJpaRepository;
 import com.ph.persistence.repository.PersonJpaRepository;
 import com.ph.persistence.repository.UserJpaRepository;
 import com.ph.rest.webservices.restfulwebservices.Service.EventService;
+import com.ph.rest.webservices.restfulwebservices.Service.PersonService;
 import com.ph.rest.webservices.restfulwebservices.Service.TimeLineService;
+import com.ph.rest.webservices.restfulwebservices.Service.UserService;
 import com.ph.rest.webservices.restfulwebservices.model.*;
 import com.ph.service.FreeTimeService;
 import com.ph.service.HashService;
@@ -54,11 +56,19 @@ public class ViewController {
     @Autowired
     EventService eventService;
 
+    @Autowired
+    UserService userService;
+
+    @Autowired
+    PersonService personService;
+
     @GetMapping(value = "/persons")
     public ModelAndView  allPersonsView(){
         ModelAndView model = new ModelAndView("Person/list");
 
-        model.addObject("persons", personJpaRepository.findAll());
+        UserEntity authUser = userService.getCurrentlyAuthenticatedUser();
+
+        model.addObject("persons",personService.getAvailablePersons());
 
         return model;
     }
@@ -78,9 +88,18 @@ public class ViewController {
 
     @PostMapping(value = "/persons")
     public String updateAbsenceView(@ModelAttribute Person person, Model model){
-        PersonEntity personEntity = person.toEntity(personJpaRepository.findById(person.getId()).get());
-        personJpaRepository.save(personEntity);
+        PersonEntity oldEntiy = personJpaRepository.findById(person.getId()).get();
+        String oldMail = ""+oldEntiy.getContact();
+        PersonEntity personEntity = person.toEntity(oldEntiy);
+        personEntity = personJpaRepository.save(personEntity);
         model.addAttribute("person", person);
+        if(!oldMail.equals(personEntity.getContact())){
+            model.addAttribute("mailchanged", true);
+            personService.sendEmailNotification(personEntity);
+        }else {
+            model.addAttribute("mailchanged", false);
+        }
+
         return "Person/confirm";
     }
 
@@ -117,10 +136,9 @@ public class ViewController {
     @GetMapping(value = "/absences")
     public ModelAndView  allAbsencesView(){
         ModelAndView model = new ModelAndView("Absence/list");
-        String titleText;
-        List<AbsenceEntity> absences;
-        absences = absenceJpaRepository.findAll();
-        titleText = "all persons";
+
+        String titleText = "all persons";
+        List<AbsenceEntity> absences = absenceJpaRepository.findByPersonIn(personService.getAvailablePersons());
 
 
         absences = absences.stream().map(x -> x.trimDescription()).sorted(Comparator.comparing(AbsenceEntity::getStartDate)).collect(Collectors.toList());
@@ -140,7 +158,9 @@ public class ViewController {
         ModelAndView model = new ModelAndView("Absence/edit");
 
         Absence absence = Absence.fromEntity(absenceJpaRepository.findById(absenceId).get());
-        List<PersonEntity> availablePersons = personJpaRepository.findAll();
+
+        List<PersonEntity> availablePersons = personService.getAvailablePersons();
+
         List<AbsenceEntity.Importance> importanceLevels = Arrays.asList(AbsenceEntity.Importance.values());
 
         model.addObject("absence", absence);
@@ -194,7 +214,9 @@ public class ViewController {
 
         Absence absence = new Absence();
         if(personId != null && personId != -1) absence.setPersonId(personId);
-        List<PersonEntity> availablePersons = personJpaRepository.findAll();
+
+        List<PersonEntity> availablePersons = personService.getAvailablePersons();
+
         List<AbsenceEntity.Importance> importanceLevels = Arrays.asList(AbsenceEntity.Importance.values());
 
         model.addObject("absence", absence);
@@ -257,6 +279,19 @@ public class ViewController {
             Event event,
             HttpServletRequest request
     ){
+        if(event.getGroupName() == null){
+            ModelAndView model = setupEventPlannerView(event);
+            model.addObject("errorText", "Please add a group for the event.");
+            return model;
+        }
+        List<PersonEntity> eventPersons = personJpaRepository.findAllById(event.getPersonIds());
+        if(!eventPersons.stream()
+                .allMatch(x -> x.getRoles().stream()
+                        .anyMatch(y -> y.getName().equals(event.getGroupName())))){
+            ModelAndView model = setupEventPlannerView(event);
+            model.addObject("errorText", "Not all selected participants are part of group: "+event.getGroupName()+". Please make sure all participants share the selected group.");
+            return model;
+        }
         if(event.getDescription().isEmpty()){
             ModelAndView model = setupEventPlannerView(event);
             model.addObject("errorText", "Please add a description for the event.");
@@ -288,9 +323,8 @@ public class ViewController {
 
             String url = "http://vacationplannerv2-be-dev3.eba-pisehxks.us-east-1.elasticbeanstalk.com/view/events/show?eventId="+eventEntity.getId();
 
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            String username = ((UserDetails)auth.getPrincipal()).getUsername();
-            PersonEntity personEntity = userJpaRepository.findById(username).get().getPersonData();
+            UserEntity authUser = userService.getCurrentlyAuthenticatedUser();
+            PersonEntity personEntity = authUser.getPersonData();
 
             eventService.sendEmailNotifications(eventEntity,url,personEntity.getName());
         }catch (PersonNotFoundException e){
@@ -322,10 +356,10 @@ public class ViewController {
             int ignoreToLevel = -1;
             event = new Event();
 
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            String username = ((UserDetails)auth.getPrincipal()).getUsername();
-            PersonEntity personEntity = userJpaRepository.findById(username).get().getPersonData();
-            event.setPersonIds(Arrays.asList(personEntity.getId()));
+            UserEntity authUser = userService.getCurrentlyAuthenticatedUser();
+            event.setPersonIds(Arrays.asList(authUser.getPersonData().getId()));
+            if(!authUser.getPersonData().getRoles().isEmpty())
+                event.setGroupName(authUser.getPersonData().getRoles().get(0).getName());
             EventPlannerConfigEntity eventPlannerConfig = new EventPlannerConfigEntity();
             eventPlannerConfig.setStart(start);
             eventPlannerConfig.setEnd(end);
@@ -344,10 +378,11 @@ public class ViewController {
 
         // setup dialog
         model.addObject("event_config",event);
-        model.addObject("selectablePersons",personJpaRepository.findAll().stream()
+        model.addObject("selectablePersons",personService.getAvailablePersons().stream()
                 .map(x -> Person.fromEntity(x))
                 .collect(Collectors.toList()));
         model.addObject("selectableImportances", AbsenceEntity.Importance.values());
+        model.addObject("selectableGroups", Person.fromEntity(userService.getCurrentlyAuthenticatedUser().getPersonData()).getRoleNames());
 
 
         // free times table
@@ -401,10 +436,7 @@ public class ViewController {
             BindingResult bindingResult,
             Model model){
 
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String username = ((UserDetails)principal).getUsername();
-
-        UserEntity user = userJpaRepository.findById(username).get();
+        UserEntity user = userService.getCurrentlyAuthenticatedUser();
         if(user.getPassword().equals(HashService.MD5(credentials.getPassword()))){
             if(bindingResult.hasErrors()){
                 credentials.setErrorText("Password should be at least 6 characters");

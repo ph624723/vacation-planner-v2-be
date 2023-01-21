@@ -19,9 +19,13 @@
                 </p>
             </div>
             <div class="mdl-typography--text-center">
+                <p th:if="${mailchanged}">
+                    A confirmation mail has been sent to your new mail-address.
+                    Please confirm you received it to make sure your contact channel is working.
+                </p>
                 <p>
-                    <a th:href="'/view/absences?personId='+${person.id}"
-                       th:text="'Return to absences for '+${person.name}">
+                    <a th:href="'/view/persons/show?personId='+${person.id}"
+                       th:text="'Return to '+${person.name}">
                         Text
                     </a>
                 </p>

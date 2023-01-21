@@ -11,7 +11,12 @@ import com.ph.service.HashService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -21,6 +26,20 @@ public class UserService {
 
     @Autowired
     private UserJpaRepository repository;
+
+    public UserEntity getCurrentlyAuthenticatedUser(){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        try {
+            String username = ((UserDetails)auth.getPrincipal()).getUsername();
+            if(repository.existsById(username)){
+                return repository.findById(username).get();
+            }else {
+                return null;
+            }
+        }catch (Exception e){
+            return null;
+        }
+    }
 
     public ResourceIdResponse<String> registerUser(RegisterCredentials credentials) throws EmailFailedException, UserNameInUseException {
         if(repository.existsById(credentials.getUsername())){

@@ -57,6 +57,11 @@ public class EventEntity {
 	@JoinColumn(name="planner_config_id")
 	private EventPlannerConfigEntity eventPlannerConfig;
 
+	@Getter
+	@Setter
+	@ManyToOne
+	private RoleEntity group;
+
 	public EventEntity(){
 		persons = new ArrayList<>();
 	}
