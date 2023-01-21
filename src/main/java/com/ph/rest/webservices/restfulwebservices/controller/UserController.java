@@ -155,6 +155,50 @@ public class UserController implements IRootController<User,String>{
 		}
 	}
 
+	@ApiOperation(value = "Update a single user's credentials by ID")
+	@PutMapping("/update/{id}")
+	public ResponseEntity<ResourceIdResponse<String>> updateCredentials(
+			@PathVariable
+			String id,
+			@RequestBody
+			Credentials credentials,
+			@RequestHeader("username")
+			String username,
+			@RequestHeader("password")
+			String password){
+		if(!(authenticateRootUser(username,password) || authenticateOwnUser(username,password,id))){
+			ResourceIdResponse response = new ResourceIdResponse();
+			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
+			if (!(username.equals(id) || username.equals(rootUserName))) response.setMessage("Only the owned user can be edited without root privileges");
+			return new ResponseEntity<>(response,HttpStatus.UNAUTHORIZED);
+		}
+		if(repository.existsById(id)){
+			UserEntity oldUser = repository.findById(id).get();
+			if(credentials.getUsername() != null && !credentials.getUsername().equals(oldUser.getName())){
+				if(!repository.existsById(credentials.getUsername())){
+					oldUser.setName(credentials.getUsername().trim());
+				}else {
+					ResourceIdResponse response = new ResourceIdResponse();
+					response.setMessage("Username already in use");
+					response.setRespondeCode(RepsonseCode.SAVE_FAILED);
+					return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+				}
+			}
+			if(credentials.getPassword() != null){
+				oldUser.setPassword(HashService.MD5(credentials.getPassword()));
+			}
+			oldUser = repository.save(oldUser);
+			ResourceIdResponse response = new ResourceIdResponse();
+			response.setResourceId(oldUser.getName());
+			response.setRespondeCode(RepsonseCode.SAVE_SUCCESSFULL);
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}else{
+			Response response = new Response();
+			response.setRespondeCode(RepsonseCode.UNKNOWN_ID);
+			return new ResponseEntity(response,HttpStatus.BAD_REQUEST);
+		}
+	}
+
 	@ApiOperation(value = "Create a new user+person combination", notes="root access only")
 	public ResponseEntity<ResourceIdResponse<String>> create(User user,
 										   String username,
