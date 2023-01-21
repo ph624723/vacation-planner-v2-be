@@ -60,7 +60,13 @@ public class PersonEntity {
     @JoinColumn(name = "person_id")
     private List<EventEntity> events;
 
+    @Getter
+    @Setter
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.DETACH, CascadeType.MERGE})
+    private List<RoleEntity> roles;
+
     public PersonEntity(){
+        roles = new ArrayList<>();
         events = new ArrayList<>();
     }
 
