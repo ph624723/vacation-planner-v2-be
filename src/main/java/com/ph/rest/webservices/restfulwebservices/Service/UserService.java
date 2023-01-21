@@ -8,6 +8,7 @@ import com.ph.rest.webservices.restfulwebservices.model.*;
 import com.ph.service.AuthService;
 import com.ph.service.EmailServiceImpl;
 import com.ph.service.HashService;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,9 @@ import java.util.Optional;
 
 @Service
 public class UserService {
+
+    @Getter
+    private final String rootUserName = "root";
 
     @Autowired
     EmailServiceImpl emailService;
@@ -42,6 +46,7 @@ public class UserService {
     }
 
     public ResourceIdResponse<String> registerUser(RegisterCredentials credentials) throws EmailFailedException, UserNameInUseException {
+        credentials.setUsername(credentials.getUsername().trim());
         if(repository.existsById(credentials.getUsername())){
             throw new UserNameInUseException(credentials.getUsername());
         }
@@ -67,6 +72,12 @@ public class UserService {
                         "Username: " + user.getName() + "\n" +
                         "Password: " + passwordPlain + "\n\n" +
                         "Please change the initial password after your first login."));
+        try {
+            System.out.println(emailService.sendSimpleMail(repository.findById(rootUserName).get().getPersonData().getContact(), "New User Registration",
+                    "A new user has registered with name: "+credentials.getUsername()));
+        }catch (Exception e){
+
+        }
         return response;
     }
 

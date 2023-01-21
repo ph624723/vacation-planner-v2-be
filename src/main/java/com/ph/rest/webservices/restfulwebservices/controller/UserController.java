@@ -40,7 +40,6 @@ public class UserController implements IRootController<User,String>{
 	@Autowired
 	private UserService userService;
 
-	private final String rootUserName = "root";
 	private final String rootUserErrorText = "Root privileges required to access user data.";
 
 	@ApiOperation(value = "Gets all stored users", notes="root access only")
@@ -127,7 +126,7 @@ public class UserController implements IRootController<User,String>{
 		if(!(authenticateRootUser(username,password) || authenticateOwnUser(username,password,id))){
 			ResourceIdResponse response = new ResourceIdResponse();
 			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
-			if (!(username.equals(id) || username.equals(rootUserName))) response.setMessage("Only the owned user can be edited without root privileges");
+			if (!(username.equals(id) || username.equals(userService.getRootUserName()))) response.setMessage("Only the owned user can be edited without root privileges");
 			return new ResponseEntity<>(response,HttpStatus.UNAUTHORIZED);
 		}
 
@@ -169,7 +168,7 @@ public class UserController implements IRootController<User,String>{
 		if(!(authenticateRootUser(username,password) || authenticateOwnUser(username,password,id))){
 			ResourceIdResponse response = new ResourceIdResponse();
 			response.setRespondeCode(RepsonseCode.CREDENTIALS_DENIED);
-			if (!(username.equals(id) || username.equals(rootUserName))) response.setMessage("Only the owned user can be edited without root privileges");
+			if (!(username.equals(id) || username.equals(userService.getRootUserName()))) response.setMessage("Only the owned user can be edited without root privileges");
 			return new ResponseEntity<>(response,HttpStatus.UNAUTHORIZED);
 		}
 		if(repository.existsById(id)){
@@ -255,9 +254,9 @@ public class UserController implements IRootController<User,String>{
 	}
 
 	private boolean authenticateRootUser(String username, String password){
-		Optional<UserEntity> rootUser = repository.findById(rootUserName);
+		Optional<UserEntity> rootUser = repository.findById(userService.getRootUserName());
 		if(rootUser.isPresent()){
-			return username.equals(rootUserName) &&
+			return username.equals(userService.getRootUserName()) &&
 					rootUser.get().getPassword().equals(HashService.MD5(password));
 		}else return true;
 	}
