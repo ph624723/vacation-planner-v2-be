@@ -113,9 +113,11 @@ public class ViewController {
         List<AbsenceEntity> absences;
         PersonEntity person = null;
 
+        UserEntity authUser = userService.getCurrentlyAuthenticatedUser();
+
         person = personJpaRepository.findById(personId).get();
         absences = absenceJpaRepository.findByPerson(person);
-        List<Event> events = eventJpaRepository.findAll().stream()
+        List<Event> events = eventJpaRepository.findByGroupIn(authUser.getPersonData().getRoles()).stream()
                 .filter(x -> x.getPersons().stream().anyMatch(y -> y.getId().equals(personId)))
                 .sorted(Comparator.comparing(EventEntity::getStartDate))
                 .map(x -> Event.fromEntity(x))
