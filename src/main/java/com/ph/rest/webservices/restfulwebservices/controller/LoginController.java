@@ -1,6 +1,7 @@
 package com.ph.rest.webservices.restfulwebservices.controller;
 
 import com.ph.model.EmailFailedException;
+import com.ph.model.PersonNotFoundException;
 import com.ph.model.UserNameInUseException;
 import com.ph.persistence.repository.UserJpaRepository;
 import com.ph.rest.webservices.restfulwebservices.Service.UserService;
@@ -46,6 +47,38 @@ public class LoginController {
         }
 
         model.addObject("credentials", credentials);
+
+        return model;
+    }
+
+    @GetMapping(value = "/forgot")
+    public ModelAndView forgotPwView(){
+        ModelAndView model = new ModelAndView("Generic/forgot");
+
+        model.addObject("credentials", new RegisterCredentials());
+
+        return model;
+    }
+
+    @PostMapping(value = "/forgot")
+    public ModelAndView forgotPwSend(
+            @ModelAttribute
+            RegisterCredentials credentials
+    ){
+        try {
+            userService.generateNewPassword(credentials.getContact());
+        }catch (EmailFailedException e){
+            ModelAndView model = new ModelAndView("Generic/forgot");
+            credentials.setErrorText("Confirmation e-mail could not be sent. Please check contact field.");
+            model.addObject("credentials", credentials);
+            return model;
+        }catch (PersonNotFoundException e){
+            ModelAndView model = new ModelAndView("Generic/forgot");
+            credentials.setErrorText("No user found associated with this mail. Please check contact field.");
+            model.addObject("credentials", credentials);
+            return model;
+        }
+        ModelAndView model = new ModelAndView("Generic/confirmNewPwSent");
 
         return model;
     }

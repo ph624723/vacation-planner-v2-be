@@ -1,8 +1,11 @@
 package com.ph.rest.webservices.restfulwebservices.Service;
 
 import com.ph.model.EmailFailedException;
+import com.ph.model.PersonNotFoundException;
 import com.ph.model.UserNameInUseException;
+import com.ph.persistence.model.PersonEntity;
 import com.ph.persistence.model.UserEntity;
+import com.ph.persistence.repository.PersonJpaRepository;
 import com.ph.persistence.repository.UserJpaRepository;
 import com.ph.rest.webservices.restfulwebservices.model.*;
 import com.ph.service.AuthService;
@@ -17,6 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -31,6 +35,9 @@ public class UserService {
     @Autowired
     private UserJpaRepository repository;
 
+    @Autowired
+    private PersonJpaRepository personJpaRepository;
+
     public UserEntity getCurrentlyAuthenticatedUser(){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         try {
@@ -43,6 +50,35 @@ public class UserService {
         }catch (Exception e){
             return null;
         }
+    }
+
+    public ResourceIdResponse<String> generateNewPassword(String mail) throws EmailFailedException, PersonNotFoundException {
+        List<PersonEntity> matchingPersons = personJpaRepository.findByContact(mail);
+        if(matchingPersons.isEmpty()){
+            throw new PersonNotFoundException(mail);
+        }
+
+        UserEntity userEntity = matchingPersons.get(0).getUser();
+        String passwordPlain = AuthService.generatePassword(userEntity.getName());
+        userEntity.setPassword(HashService.MD5(passwordPlain));
+        UserEntity userUpdated = repository.save(userEntity);
+
+        try {
+            System.out.println(emailService.sendSimpleMail(mail, "Vacation Planner - New Initial Credentials",
+                    "Someone requested new login credentials using this email address.\n\n" +
+                            "You can login using the following credentials:\n" +
+                            "Username: " + userUpdated.getName() + "\n" +
+                            "Password: " + passwordPlain + "\n\n" +
+                            "Please change the password after your next login."));
+        }catch (Exception e){
+            throw new EmailFailedException(mail);
+        }
+
+        ResourceIdResponse<String> response = new ResourceIdResponse<>();
+        response.setResourceId(userUpdated.getName());
+        response.setRespondeCode(RepsonseCode.SAVE_SUCCESSFULL);
+        response.setMessage("Updated user with name: "+userUpdated.getName());
+        return response;
     }
 
     public ResourceIdResponse<String> registerUser(RegisterCredentials credentials) throws EmailFailedException, UserNameInUseException {

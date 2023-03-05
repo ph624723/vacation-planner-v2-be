@@ -4,6 +4,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class PersonNotFoundException extends Exception{
+
+    public PersonNotFoundException(String contact){
+        super("No person was found for mail address: "+contact);
+    }
     public PersonNotFoundException(Long id){
         super("No person was found for id: "+id);
     }

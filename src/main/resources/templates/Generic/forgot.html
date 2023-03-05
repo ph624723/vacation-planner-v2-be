@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="https://www.thymeleaf.org">
-<head th:insert="index :: head(titleText='Sign In - Vacation Planner')">
+<head th:insert="index :: head(titleText='Forgot Password - Vacation Planner')">
 </head>
 <body>
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
@@ -10,11 +10,10 @@
     <a name="top"></a>
     <div class="page-content">
       <div class="title-screen-section mdl-typography--text-center">
-        <p class="mdl-typography--headline mdl-typography--font-thin"
-           th:if="${credentials.logout}">
-          Logout successful
+        <div class="mdl-typography--display-1-color-contrast pageTitle">Request New Password</div>
+        <p class="mdl-typography--headline mdl-typography--font-thin">
+          Enter your mail address. If an account is associated to the address, a new password will be sent.
         </p>
-        <div class="mdl-typography--display-1-color-contrast pageTitle">Sign In</div>
         <p class="mdl-typography--headline mdl-typography--font-thin"
            th:if="${credentials.errorText} != null"
            th:text="${credentials.errorText}">
@@ -22,30 +21,19 @@
         </p>
       </div>
       <div class="mdl-shadow--2dp mdl-color--white mdl-cell centerContentBox dialogContentBox">
-        <form th:action="@{/login}"
+        <form th:action="@{/forgot}"
               th:object="${credentials}"
               method="post">
 
           <div class="mdl-typography--text-center">
             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
               <input class="mdl-textfield__input"
-                     type="text"
-                     th:field="*{username}"
-                     id="usernameField">
-              <label class="mdl-textfield__label" for="usernameField">Username</label>
-            </div>
-            <br/>
-            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-              <input class="mdl-textfield__input"
-                     type="password"
-                     th:field="*{password}"
-                     id="passwordField">
-              <label class="mdl-textfield__label" for="passwordField">Password</label>
+                     type="email"
+                     th:field="*{contact}"
+                     id="contactField">
+              <label class="mdl-textfield__label" for="contactField">E-Mail</label>
             </div>
           </div>
-
-            <a th:href="'/forgot'" style="float:left">Forgot Password</a>
-
           <div class="mdl-typography--text-right">
             <button type="submit"
                     class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">

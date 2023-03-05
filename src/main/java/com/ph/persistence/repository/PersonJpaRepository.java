@@ -12,4 +12,6 @@ import java.util.Set;
 @Repository
 public interface PersonJpaRepository extends JpaRepository<PersonEntity, Long>{
     Set<PersonEntity> findByRolesIsIn(List<RoleEntity> roles);
+
+    List<PersonEntity> findByContact(String contact);
 }
