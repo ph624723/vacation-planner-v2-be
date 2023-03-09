@@ -76,6 +76,21 @@
                 </div>
             </div>
             <br/>
+            <div class="mdl-shadow--2dp mdl-color--white mdl-cell mdl-cell--8-col centerContentBox"
+                 th:if="${allAccepted}==true">
+                <p class="mdl-typography--title mdl-typography--font-thin">
+                    Everyone has accepted this event. You can now finalize your planning and create a fixed absence for everyone.
+                    Mind that this step cannot be reverted.
+                </p>
+                <div class="mdl-typography--text-center">
+                    <button type="button"
+                            class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+                            th:onclick="'javascript:openAbsenceFromEvent(\'' + ${event.id} + '\');'">
+                        Make Fixed Absence
+                    </button>
+                </div>
+            </div>
+            <br/>
         </div>
         <footer th:replace="index :: footerContent"> </footer>
     </main>

@@ -64,6 +64,8 @@ public class ViewController {
     @Autowired
     PersonService personService;
 
+    private final String APP_BASE_URL = "http://vacationplannerv2-be-dev3.eba-pisehxks.us-east-1.elasticbeanstalk.com/view/events/show?eventId=";
+
     @GetMapping(value = "/persons")
     public ModelAndView  allPersonsView(){
         ModelAndView model = new ModelAndView("Person/list");
@@ -281,6 +283,7 @@ public class ViewController {
         UserEntity currentUser = userService.getCurrentlyAuthenticatedUser();
         boolean isAccepted = personsAccepted.stream().anyMatch(x -> x.getId() == currentUser.getPersonData().getId());
         model.addObject("isAccepted", isAccepted);
+        model.addObject("allAccepted", event.getPersonIdsAccepted().equals(event.getPersonIds()));
 
         return model;
     }
@@ -298,7 +301,8 @@ public class ViewController {
 
         if(eventEntity.getAcceptedPersons().containsAll(eventEntity.getPersons())){
             //event fully accepted
-            System.out.println(true);
+            String url = APP_BASE_URL+eventEntity.getId();
+            eventService.sendAllAcceptedMail(eventEntity,url);
         }
 
         return new ModelAndView("redirect:/view/events/show?eventId="+eventId);
@@ -314,6 +318,39 @@ public class ViewController {
 
         eventEntity.getAcceptedPersons().remove(currentUser.getPersonData());
         eventJpaRepository.save(eventEntity);
+
+        return new ModelAndView("redirect:/view/events/show?eventId="+eventId);
+    }
+
+    @GetMapping(value = "/events/finalize")
+    public ModelAndView  finalizeEvent(
+            @RequestParam()
+            Long eventId
+    ){
+        EventEntity eventEntity = eventJpaRepository.findById(eventId).get();
+        UserEntity currentUser = userService.getCurrentlyAuthenticatedUser();
+
+        if(eventEntity.getAcceptedPersons().equals(eventEntity.getPersons())){
+            for (PersonEntity person : eventEntity.getPersons()) {
+                if(person.equals(currentUser.getPersonData())) continue;
+
+                AbsenceEntity absence = new AbsenceEntity();
+                absence.setStartDate(eventEntity.getStartDate());
+                absence.setEndDate(eventEntity.getEndDate());
+                absence.setDescription(eventEntity.getDescription());
+                absence.setLevel(AbsenceEntity.Importance.Medium.getLevel());
+                absence.setPerson(person);
+                absenceJpaRepository.save(absence);
+            }
+
+            Absence myAbsence = new Absence();
+            myAbsence.setStartDate(eventEntity.getStartDate());
+            myAbsence.setEndDate(eventEntity.getEndDate());
+            myAbsence.setDescription(eventEntity.getDescription());
+            myAbsence.setLevel(AbsenceEntity.Importance.Medium.getLevel());
+            myAbsence.setPersonId(currentUser.getPersonData().getId());
+            return updateAbsenceView(myAbsence);
+        }
 
         return new ModelAndView("redirect:/view/events/show?eventId="+eventId);
     }
@@ -370,7 +407,7 @@ public class ViewController {
 
             eventEntity = eventJpaRepository.save(eventEntity);
 
-            String url = "http://vacationplannerv2-be-dev3.eba-pisehxks.us-east-1.elasticbeanstalk.com/view/events/show?eventId="+eventEntity.getId();
+            String url = APP_BASE_URL+eventEntity.getId();
 
             eventService.sendEmailNotifications(eventEntity,url,personEntity.getName());
         }catch (PersonNotFoundException e){

@@ -45,6 +45,27 @@ public class EventService {
                 "To: " + end +"\n"+
                 "Description: " + description +"\n\n"+
                 "Details can be found on your page inside the Vacation Planner:\n" +
-                url;
+                url +"\n" +
+                "Please check everything and accept the event if you want to participate." + "\n" +
+                "This way planning can progress to the next steps as soon as possible.";
+    }
+
+    public void sendAllAcceptedMail(EventEntity event, String url){
+        for (PersonEntity person : event.getPersons()) {
+            try {
+                emailService.sendSimpleMail(person.getContact(),
+                        "All participants have accepted your event!",
+                        "Hello "+person.getName()+",\n\n"+
+                        "Good news! All participants have accepted your event with the following details:\n" +
+                        "From: " + event.getStartDate() +"\n"+
+                        "To: " + event.getEndDate() +"\n"+
+                        "Description: " + event.getDescription() +"\n\n"+
+                        "If you are content with your planning, you can now finalize the event and create a fixed absence for everyone.\n" +
+                        url);
+                System.out.println("success to send mail to "+person.getName());
+            }catch (Exception e){
+                System.out.println("Notification mail failed for "+person.getName());
+            }
+        }
     }
 }
