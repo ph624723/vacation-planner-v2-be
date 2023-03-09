@@ -13,6 +13,7 @@ import com.ph.rest.webservices.restfulwebservices.Service.PersonService;
 import com.ph.rest.webservices.restfulwebservices.Service.TimeLineService;
 import com.ph.rest.webservices.restfulwebservices.Service.UserService;
 import com.ph.rest.webservices.restfulwebservices.model.*;
+import com.ph.service.AuthService;
 import com.ph.service.FreeTimeService;
 import com.ph.service.HashService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,7 @@ import javax.validation.Valid;
 import java.sql.Date;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Controller
 @RequestMapping("/view")
@@ -267,12 +269,53 @@ public class ViewController {
 
         EventEntity eventEntity = eventJpaRepository.findById(eventId).get();
         Event event = Event.fromEntity(eventEntity);
-        List<Person> persons = eventEntity.getPersons().stream().map(x -> Person.fromEntity(x)).collect(Collectors.toList());
+        List<Person> personsAccepted = eventEntity.getAcceptedPersons().stream().map(x -> Person.fromEntity(x)).collect(Collectors.toList());
+        List<Person> personsNotAccepted = eventEntity.getPersons().stream()
+                .filter(x -> !eventEntity.getAcceptedPersons().contains(x))
+                .map(x -> Person.fromEntity(x)).collect(Collectors.toList());
 
         model.addObject("event", event);
-        model.addObject("persons", persons);
+        model.addObject("personsAccepted", personsAccepted);
+        model.addObject("personsMissing", personsNotAccepted);
+
+        UserEntity currentUser = userService.getCurrentlyAuthenticatedUser();
+        boolean isAccepted = personsAccepted.stream().anyMatch(x -> x.getId() == currentUser.getPersonData().getId());
+        model.addObject("isAccepted", isAccepted);
 
         return model;
+    }
+
+    @GetMapping(value = "/events/accept")
+    public ModelAndView  acceptEvent(
+            @RequestParam()
+            Long eventId
+    ){
+        EventEntity eventEntity = eventJpaRepository.findById(eventId).get();
+        UserEntity currentUser = userService.getCurrentlyAuthenticatedUser();
+
+        eventEntity.getAcceptedPersons().add(currentUser.getPersonData());
+        eventJpaRepository.save(eventEntity);
+
+        if(eventEntity.getAcceptedPersons().containsAll(eventEntity.getPersons())){
+            //event fully accepted
+            System.out.println(true);
+        }
+
+        return new ModelAndView("redirect:/view/events/show?eventId="+eventId);
+    }
+
+    @GetMapping(value = "/events/decline")
+    public ModelAndView  declineEvent(
+            @RequestParam()
+            Long eventId
+    ){
+        EventEntity eventEntity = eventJpaRepository.findById(eventId).get();
+        UserEntity currentUser = userService.getCurrentlyAuthenticatedUser();
+
+        eventEntity.getAcceptedPersons().remove(currentUser.getPersonData());
+        eventJpaRepository.save(eventEntity);
+
+        return new ModelAndView("redirect:/view/events/show?eventId="+eventId);
     }
 
     @PostMapping(value = "/events/save")
@@ -305,10 +348,14 @@ public class ViewController {
             return model;
         }
 
+        UserEntity authUser = userService.getCurrentlyAuthenticatedUser();
+        PersonEntity personEntity = authUser.getPersonData();
+
         EventEntity oldEvent= null;
         if(event.getId()!= null){
             oldEvent = eventJpaRepository.findById(event.getId()).orElse(null);
         }
+        event.setPersonIdsAccepted(Stream.of(authUser.getPersonData().getId()).collect(Collectors.toSet()));
         try {
             EventEntity eventEntity = event.toEntity(oldEvent, personJpaRepository);
 
@@ -324,9 +371,6 @@ public class ViewController {
             eventEntity = eventJpaRepository.save(eventEntity);
 
             String url = "http://vacationplannerv2-be-dev3.eba-pisehxks.us-east-1.elasticbeanstalk.com/view/events/show?eventId="+eventEntity.getId();
-
-            UserEntity authUser = userService.getCurrentlyAuthenticatedUser();
-            PersonEntity personEntity = authUser.getPersonData();
 
             eventService.sendEmailNotifications(eventEntity,url,personEntity.getName());
         }catch (PersonNotFoundException e){
@@ -359,7 +403,7 @@ public class ViewController {
             event = new Event();
 
             UserEntity authUser = userService.getCurrentlyAuthenticatedUser();
-            event.setPersonIds(Arrays.asList(authUser.getPersonData().getId()));
+            event.setPersonIds(Stream.of(authUser.getPersonData().getId()).collect(Collectors.toSet()));
             if(!authUser.getPersonData().getRoles().isEmpty())
                 event.setGroupName(authUser.getPersonData().getRoles().get(0).getName());
             EventPlannerConfigEntity eventPlannerConfig = new EventPlannerConfigEntity();

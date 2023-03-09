@@ -7,10 +7,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Entity
 @Table(name = "event")
@@ -26,7 +23,13 @@ public class EventEntity {
 	@Setter
 	@ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.DETACH, CascadeType.MERGE})
 	@JoinColumn(name = "event_id")
-	private List<PersonEntity> persons;
+	private Set<PersonEntity> persons = new HashSet<>();
+
+	@Getter
+	@Setter
+	@ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.DETACH, CascadeType.MERGE})
+	@JoinColumn(name = "event_id_accepted")
+	private Set<PersonEntity> acceptedPersons = new HashSet<>();
 
 	@Getter
 	@Setter
@@ -61,10 +64,6 @@ public class EventEntity {
 	@Setter
 	@ManyToOne
 	private RoleEntity group;
-
-	public EventEntity(){
-		persons = new ArrayList<>();
-	}
 
 	public TimeSpan asTimeSpan(){
 		return new TimeSpan(startDate,endDate);

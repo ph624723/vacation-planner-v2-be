@@ -14,6 +14,14 @@
                      th:text="'Show Event'">
                     Title
                 </div>
+                <p class="mdl-typography--headline mdl-typography--font-thin"
+                   th:if="${isAccepted}==false">
+                    If you do not plan to accept the event as is, please propose necessary changes or remove yourself from the participants list to further the planning process.
+                </p>
+                <p class="mdl-typography--headline mdl-typography--font-thin"
+                   th:if="${isAccepted}==true">
+                    You have accepted this event.
+                </p>
             </div>
 
             <div class="mdl-shadow--2dp mdl-color--white mdl-cell mdl-cell--8-col centerContentBox">
@@ -21,9 +29,16 @@
                     <div class="mdl-typography--title"
                          th:text="${event.description}"/>
                     <br/>
-                    <div th:each="person : ${persons}"
+                    <p>Accepted:</p>
+                    <div th:each="person : ${personsAccepted}"
                         th:text="${person.name}"
                         style="display : inline-block"/>
+                    <br/>
+                    <br/>
+                    <p>Not yet accepted:</p>
+                    <div th:each="person : ${personsMissing}"
+                         th:text="${person.name}"
+                         style="display : inline-block"/>
                     <br/>
                     <br/>
                     <div th:text="'From: '+${event.startDate}"
@@ -32,6 +47,21 @@
                          style="display : inline-block"/>
                 </div>
                 <br/>
+                <button type="button"
+                        style="float:left"
+                        class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+                        th:onclick="'javascript:openAcceptEvent(\'' + ${event.id} + '\');'"
+                        th:if="${isAccepted}==false">
+                    Accept
+                </button>
+                <button type="button"
+                        style="float:left"
+                        class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+                        th:onclick="'javascript:openUnAcceptEvent(\'' + ${event.id} + '\');'"
+                        th:if="${isAccepted}==true">
+                    Un-Accept
+                </button>
+
                 <div class="mdl-typography--text-right">
                     <button type="button"
                             class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"

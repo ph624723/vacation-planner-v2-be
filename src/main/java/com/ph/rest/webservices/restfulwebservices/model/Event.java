@@ -12,9 +12,7 @@ import org.thymeleaf.util.DateUtils;
 
 import java.sql.Date;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @ApiModel(description = "Meant to store potential event times for groups of users.")
@@ -26,7 +24,10 @@ public class Event {
 	@ApiModelProperty(position = 1, required = true)
 	@Getter
 	@Setter
-	private List<Long> personIds;
+	private Set<Long> personIds;
+	@Getter
+	@Setter
+	private Set<Long> personIdsAccepted;
 	@ApiModelProperty(position = 5, required = false, value = "Vacation with you.")
 	@Getter
 	@Setter
@@ -52,7 +53,8 @@ public class Event {
 	public static Event fromEntity(EventEntity entity){
 		Event event = new Event();
 		event.setId(entity.getId());
-		event.setPersonIds(entity.getPersons().stream().map(x -> x.getId()).collect(Collectors.toList()));
+		event.setPersonIds(entity.getPersons().stream().map(x -> x.getId()).collect(Collectors.toSet()));
+		event.setPersonIdsAccepted(entity.getAcceptedPersons().stream().map(x -> x.getId()).collect(Collectors.toSet()));
 		event.setDescription(entity.getDescription());
 		event.setStartDate(entity.getStartDate());
 		event.setEndDate(entity.getEndDate());
@@ -71,12 +73,24 @@ public class Event {
 		entity.setEventPlannerConfig(eventPlannerConfig);
 		entity.setGroup(new RoleEntity(groupName));
 		if(personIds != null){
-			entity.setPersons(new ArrayList<>());
+			entity.setPersons(new HashSet<>());
 			for (Long personId :
 					personIds) {
 				Optional<PersonEntity> personEntity = personJpaRepository.findById(personId);
 				if(personEntity.isPresent()) {
 					entity.getPersons().add(personEntity.get());
+				}else{
+					throw new PersonNotFoundException(personId);
+				}
+			}
+		}
+		if(personIdsAccepted != null){
+			entity.setAcceptedPersons(new HashSet<>());
+			for (Long personId :
+					personIdsAccepted) {
+				Optional<PersonEntity> personEntity = personJpaRepository.findById(personId);
+				if(personEntity.isPresent()) {
+					entity.getAcceptedPersons().add(personEntity.get());
 				}else{
 					throw new PersonNotFoundException(personId);
 				}
