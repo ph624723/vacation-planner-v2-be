@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.Date;
+import java.util.List;
+import java.util.Set;
 
 @Service
 public class EventService {
@@ -16,8 +18,8 @@ public class EventService {
     @Autowired
     EmailServiceImpl emailService;
 
-    public void sendEmailNotifications(EventEntity event, String url, String senderName){
-        for (PersonEntity person : event.getPersons()) {
+    public void sendEmailNotifications(EventEntity event, Set<PersonEntity> toPersons, String url, String senderName){
+        for (PersonEntity person : toPersons) {
             try {
                 System.out.println("try to send mail to "+person.getName());
                 emailService.sendSimpleMail(person.getContact(),

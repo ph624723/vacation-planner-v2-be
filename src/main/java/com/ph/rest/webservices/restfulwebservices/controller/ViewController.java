@@ -16,6 +16,8 @@ import com.ph.rest.webservices.restfulwebservices.model.*;
 import com.ph.service.AuthService;
 import com.ph.service.FreeTimeService;
 import com.ph.service.HashService;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -425,13 +427,22 @@ public class ViewController {
         UserEntity authUser = userService.getCurrentlyAuthenticatedUser();
         PersonEntity personEntity = authUser.getPersonData();
 
-        EventEntity oldEvent= null;
+        EventEntity oldEventEntity= null;
+        Collection<Long> mailPeopleIds = event.getPersonIds();
         if(event.getId()!= null){
-            oldEvent = eventJpaRepository.findById(event.getId()).orElse(null);
+            oldEventEntity = eventJpaRepository.findById(event.getId()).orElse(null);
+            Event oldEvent = Event.fromEntity(oldEventEntity);
+            if(!event.equalsTimeframe(oldEvent)){
+                event.setPersonIdsAccepted(new HashSet<>());
+            }
+            if(event.equalsExceptForPersons(oldEvent)){
+                mailPeopleIds = CollectionUtils.removeAll(event.getPersonIds(),oldEvent.getPersonIds());
+            }
         }
-        event.setPersonIdsAccepted(Stream.of(authUser.getPersonData().getId()).collect(Collectors.toSet()));
+        event.getPersonIdsAccepted().add(authUser.getPersonData().getId());
+        event.getPersonIdsAccepted().retainAll(event.getPersonIds());
         try {
-            EventEntity eventEntity = event.toEntity(oldEvent, personJpaRepository);
+            EventEntity eventEntity = event.toEntity(oldEventEntity, personJpaRepository);
 
             System.out.println("eventEntity------------------ "+eventEntity.getDescription());
             System.out.println("eventEntity------------------ "+eventEntity.getId());
@@ -446,7 +457,15 @@ public class ViewController {
 
             String url = APP_BASE_URL+eventEntity.getId();
 
-            eventService.sendEmailNotifications(eventEntity,url,personEntity.getName());
+            Collection<Long> finalMailPeopleIds = mailPeopleIds;
+            Set<PersonEntity> mailPersons = eventEntity.getPersons().stream()
+                    .filter(x -> finalMailPeopleIds.contains(x.getId()))
+                    .collect(Collectors.toSet());
+            eventService.sendEmailNotifications(eventEntity,mailPersons,url,personEntity.getName());
+            if(eventEntity.getAcceptedPersons().equals(eventEntity.getPersons())){
+                //event fully accepted
+                eventService.sendAllAcceptedMail(eventEntity,url);
+            }
         }catch (PersonNotFoundException e){
             return new ModelAndView("redirect:/view/home");
         }

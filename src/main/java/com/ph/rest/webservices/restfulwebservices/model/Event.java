@@ -98,4 +98,19 @@ public class Event {
 		}
 		return entity;
 	}
+
+	public boolean equalsTimeframe(Event otherEvent){
+		return otherEvent != null &&
+				Objects.equals(startDate, otherEvent.getStartDate()) &&
+				Objects.equals(endDate, otherEvent.getEndDate());
+	}
+
+	public boolean equalsExceptForPersons(Event otherEvent){
+		return otherEvent != null &&
+				Objects.equals(startDate, otherEvent.getStartDate()) &&
+				Objects.equals(endDate, otherEvent.getEndDate()) &&
+				Objects.equals(id, otherEvent.getId()) &&
+				Objects.equals(description, otherEvent.getDescription()) &&
+				Objects.equals(groupName, otherEvent.getGroupName());
+	}
 }
