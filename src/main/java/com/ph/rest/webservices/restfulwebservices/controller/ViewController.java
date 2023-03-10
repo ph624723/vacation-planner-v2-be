@@ -17,6 +17,7 @@ import com.ph.service.AuthService;
 import com.ph.service.FreeTimeService;
 import com.ph.service.HashService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -70,8 +71,6 @@ public class ViewController {
     public ModelAndView  allPersonsView(){
         ModelAndView model = new ModelAndView("Person/list");
 
-        UserEntity authUser = userService.getCurrentlyAuthenticatedUser();
-
         model.addObject("persons",personService.getAvailablePersons());
 
         return model;
@@ -81,6 +80,10 @@ public class ViewController {
             @RequestParam(required = true)
             Long personId
     ){
+        if(!personService.isPersonAvailable(personId)){
+            return get403ResourceNoAccessErrorResponse();
+        }
+
         ModelAndView model = new ModelAndView("Person/edit");
 
         Person person = Person.fromEntity(personJpaRepository.findById(personId).get());
@@ -112,6 +115,10 @@ public class ViewController {
             @RequestParam
             Long personId
     ){
+        if(!personService.isPersonAvailable(personId)){
+            return get403ResourceNoAccessErrorResponse();
+        }
+
         ModelAndView model = new ModelAndView("Person/show");
         String titleText;
         List<AbsenceEntity> absences;
@@ -164,6 +171,9 @@ public class ViewController {
         ModelAndView model = new ModelAndView("Absence/edit");
 
         Absence absence = Absence.fromEntity(absenceJpaRepository.findById(absenceId).get());
+        if(!personService.isPersonAvailable(absence.getPersonId())){
+            return get403ResourceNoAccessErrorResponse();
+        }
 
         List<PersonEntity> availablePersons = personService.getAvailablePersons();
 
@@ -181,6 +191,10 @@ public class ViewController {
             @RequestParam(required = true)
             Long absenceId
     ){
+        AbsenceEntity absence = absenceJpaRepository.findById(absenceId).get();
+        if(!personService.isPersonAvailable(absence.getPerson().getId())){
+            return get403ResourceNoAccessErrorResponse();
+        }
 
         absenceJpaRepository.deleteById(absenceId);
         ModelAndView model = new ModelAndView("redirect:/view/absences");
@@ -219,7 +233,12 @@ public class ViewController {
         ModelAndView model = new ModelAndView("Absence/edit");
 
         Absence absence = new Absence();
-        if(personId != null && personId != -1) absence.setPersonId(personId);
+        if(personId != null && personId != -1) {
+            if(!personService.isPersonAvailable(personId)){
+                return get403ResourceNoAccessErrorResponse();
+            }
+            absence.setPersonId(personId);
+        }
 
         List<PersonEntity> availablePersons = personService.getAvailablePersons();
 
@@ -254,12 +273,15 @@ public class ViewController {
             @RequestParam()
             Long eventId
     ){
-        ModelAndView model = new ModelAndView("redirect:/view/home");
-
         EventEntity eventEntity = eventJpaRepository.findById(eventId).get();
-        eventJpaRepository.delete(eventEntity);
 
-        return model;
+        if(eventEntity.getPersons().contains(userService.getCurrentlyAuthenticatedUser().getPersonData())){
+            eventJpaRepository.delete(eventEntity);
+        }else{
+            return get403ResourceNoAccessErrorResponse();
+        }
+
+        return new ModelAndView("redirect:/view/home");
     }
 
     @GetMapping(value = "/events/show")
@@ -270,6 +292,11 @@ public class ViewController {
         ModelAndView model = new ModelAndView("Event/show");
 
         EventEntity eventEntity = eventJpaRepository.findById(eventId).get();
+        UserEntity currentUser = userService.getCurrentlyAuthenticatedUser();
+        if(!eventEntity.getPersons().contains(currentUser.getPersonData())){
+            return get403ResourceNoAccessErrorResponse();
+        }
+
         Event event = Event.fromEntity(eventEntity);
         List<Person> personsAccepted = eventEntity.getAcceptedPersons().stream().map(x -> Person.fromEntity(x)).collect(Collectors.toList());
         List<Person> personsNotAccepted = eventEntity.getPersons().stream()
@@ -280,7 +307,6 @@ public class ViewController {
         model.addObject("personsAccepted", personsAccepted);
         model.addObject("personsMissing", personsNotAccepted);
 
-        UserEntity currentUser = userService.getCurrentlyAuthenticatedUser();
         boolean isAccepted = personsAccepted.stream().anyMatch(x -> x.getId() == currentUser.getPersonData().getId());
         model.addObject("isAccepted", isAccepted);
         model.addObject("allAccepted", event.getPersonIdsAccepted().equals(event.getPersonIds()));
@@ -295,6 +321,9 @@ public class ViewController {
     ){
         EventEntity eventEntity = eventJpaRepository.findById(eventId).get();
         UserEntity currentUser = userService.getCurrentlyAuthenticatedUser();
+        if(!eventEntity.getPersons().contains(currentUser.getPersonData())){
+            return get403ResourceNoAccessErrorResponse();
+        }
 
         eventEntity.getAcceptedPersons().add(currentUser.getPersonData());
         eventJpaRepository.save(eventEntity);
@@ -315,6 +344,9 @@ public class ViewController {
     ){
         EventEntity eventEntity = eventJpaRepository.findById(eventId).get();
         UserEntity currentUser = userService.getCurrentlyAuthenticatedUser();
+        if(!eventEntity.getPersons().contains(currentUser.getPersonData())){
+            return get403ResourceNoAccessErrorResponse();
+        }
 
         eventEntity.getAcceptedPersons().remove(currentUser.getPersonData());
         eventJpaRepository.save(eventEntity);
@@ -329,6 +361,9 @@ public class ViewController {
     ){
         EventEntity eventEntity = eventJpaRepository.findById(eventId).get();
         UserEntity currentUser = userService.getCurrentlyAuthenticatedUser();
+        if(!eventEntity.getPersons().contains(currentUser.getPersonData())){
+            return get403ResourceNoAccessErrorResponse();
+        }
 
         if(eventEntity.getAcceptedPersons().equals(eventEntity.getPersons())){
             for (PersonEntity person : eventEntity.getPersons()) {
@@ -545,6 +580,12 @@ public class ViewController {
             model.addAttribute("credentials", credentials);
             return "Generic/changePw";
         }
+    }
+
+    private ModelAndView get403ResourceNoAccessErrorResponse(){
+        ModelAndView model = new ModelAndView("Generic/Error/403ResourceNoAccessError");
+        model.setStatus(HttpStatus.FORBIDDEN);
+        return model;
     }
 
 }

@@ -32,6 +32,13 @@ public class PersonService {
         return authPersons.stream().collect(Collectors.toList());
     }
 
+    public boolean isPersonAvailable(Long id){
+        UserEntity authUser = userService.getCurrentlyAuthenticatedUser();
+        Set<PersonEntity> authPersons = personJpaRepository.findByRolesIsIn(authUser.getPersonData().getRoles());
+        authPersons.add(authUser.getPersonData());
+        return authPersons.stream().anyMatch(x -> x.getId().equals(id));
+    }
+
     public void sendEmailNotification(PersonEntity person){
             try {
                 System.out.println("try to send mail to "+person.getName());
