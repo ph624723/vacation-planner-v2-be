@@ -191,8 +191,9 @@
             User Settings
           </span>
           <span class="mdl-navigation__link"
-                sec:authorize="isAuthenticated()">
-            <div sec:authentication="name"></div>
+                sec:authorize="isAuthenticated()"
+                th:onclick="'javascript:openHomeView();'">
+            Logged in as: <span sec:authentication="name"/>
           </span>
           <a class="mdl-navigation__link"
              href="/login"

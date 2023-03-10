@@ -254,9 +254,11 @@ public class ViewController {
     @GetMapping(value = "/home")
     public ModelAndView  homeView(){
 
-        ModelAndView model = new ModelAndView("main");
-
-        return model;
+        UserEntity currentUser = userService.getCurrentlyAuthenticatedUser();
+        if(currentUser == null)
+            return new ModelAndView("main");
+        else
+            return showPersonView(currentUser.getPersonData().getId());
     }
 
     //@GetMapping(value = "/index")

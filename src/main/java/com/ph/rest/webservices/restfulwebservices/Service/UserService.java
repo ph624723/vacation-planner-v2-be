@@ -40,16 +40,18 @@ public class UserService {
 
     public UserEntity getCurrentlyAuthenticatedUser(){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        try {
-            String username = ((UserDetails)auth.getPrincipal()).getUsername();
-            if(repository.existsById(username)){
-                return repository.findById(username).get();
-            }else {
+        if(auth.getPrincipal() instanceof UserDetails){
+            try {
+                String username = ((UserDetails)auth.getPrincipal()).getUsername();
+                if(repository.existsById(username)){
+                    return repository.findById(username).get();
+                }else {
+                    return null;
+                }
+            }catch (Exception e){
                 return null;
             }
-        }catch (Exception e){
-            return null;
-        }
+        }else return null;
     }
 
     public ResourceIdResponse<String> generateNewPassword(String mail) throws EmailFailedException, PersonNotFoundException {
