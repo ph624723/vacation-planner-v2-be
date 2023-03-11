@@ -609,4 +609,11 @@ public class ViewController {
         return model;
     }
 
+    @ExceptionHandler(Exception.class)
+    private ModelAndView get500InternalErrorResponse(){
+        ModelAndView model = new ModelAndView("Generic/Error/500InternalError");
+        model.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        return model;
+    }
+
 }
