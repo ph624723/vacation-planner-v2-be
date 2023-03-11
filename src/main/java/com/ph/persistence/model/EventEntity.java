@@ -4,6 +4,7 @@ import com.ph.model.TimeSpan;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
@@ -33,6 +34,8 @@ public class EventEntity {
 
 	@Getter
 	@Setter
+	@Type(type = "text")
+	@Lob
 	private String description;
 
 	@Getter
