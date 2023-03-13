@@ -6,13 +6,19 @@ import com.ph.rest.webservices.restfulwebservices.model.DayOfMonth;
 import com.ph.rest.webservices.restfulwebservices.model.Month;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.sql.Date;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import static java.time.temporal.ChronoUnit.DAYS;
 
 @Service
 public class TimeLineService {
@@ -22,19 +28,18 @@ public class TimeLineService {
 
         List<Month> months = new ArrayList<>();
         LocalDate tmp = start.toLocalDate();
-        int firstDay = tmp.getDayOfMonth();
-        while (tmp.isBefore(end.toLocalDate()) || tmp.isEqual(end.toLocalDate())){
+        while (!tmp.isAfter(end.toLocalDate())){
+            java.time.Month currentMonth = tmp.getMonth();
             Month month = new Month();
-            month.setName(tmp.getMonth().name());
+            month.setName(currentMonth.name());
 
             List<DayOfMonth> dates = new ArrayList<>();
-            int lastDay = tmp.getYear() == end.toLocalDate().getYear() && tmp.getMonth().equals(end.toLocalDate().getMonth()) ?
-                    end.toLocalDate().getDayOfMonth() :
-                    tmp.getMonth().length(tmp.isLeapYear());
-            for (int i =firstDay; i<=lastDay;i++) dates.add(new DayOfMonth(i));
+            while (!tmp.isAfter(end.toLocalDate()) && tmp.getMonth().equals(currentMonth)){
+                boolean isWeekend = tmp.getDayOfWeek().equals(DayOfWeek.SATURDAY) || tmp.getDayOfWeek().equals(DayOfWeek.SUNDAY);
+                dates.add(new DayOfMonth(tmp.getDayOfMonth(), isWeekend));
+                tmp = tmp.plusDays(1);
+            }
             month.setDays(dates);
-            tmp = tmp.plusMonths(1).withDayOfMonth(1);
-            firstDay = 1;
             months.add(month);
         }
         return months;
@@ -90,9 +95,7 @@ public class TimeLineService {
         return results;
     }
 
-    public long diffInDays(java.util.Date a, java.util.Date b){
-        long diffInMillies = b.getTime() - a.getTime();
-        long diff = TimeUnit.DAYS.convert(Math.abs(diffInMillies), TimeUnit.MILLISECONDS);
-        return diff * (diffInMillies > 0 ? 1 : -1);
+    public long diffInDays(java.sql.Date a, java.sql.Date b){
+        return DAYS.between(a.toLocalDate(),b.toLocalDate());
     }
 }

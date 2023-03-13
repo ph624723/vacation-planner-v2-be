@@ -454,15 +454,6 @@ public class ViewController {
         try {
             EventEntity eventEntity = event.toEntity(oldEventEntity, personJpaRepository);
 
-            System.out.println("eventEntity------------------ "+eventEntity.getDescription());
-            System.out.println("eventEntity------------------ "+eventEntity.getId());
-            System.out.println("eventEntity------------------ "+eventEntity.getStartDate());
-            System.out.println("eventEntity------------------ "+eventEntity.getEndDate());
-            System.out.println("eventEntity------------------ "+eventEntity.getEventPlannerConfig().getId());
-            System.out.println("eventEntity------------------ "+eventEntity.getEventPlannerConfig().getStart());
-            System.out.println("eventEntity------------------ "+eventEntity.getEventPlannerConfig().getEnd());
-            System.out.println("eventEntity------------------ "+eventEntity.getEventPlannerConfig().getIgnoreAbsenceToLevel());
-
             eventEntity = eventJpaRepository.save(eventEntity);
 
             String url = APP_BASE_URL+eventEntity.getId();
@@ -559,8 +550,6 @@ public class ViewController {
                         .filter(x -> x.getLevel() > ignoreToLevel)
                         .collect(Collectors.toList()));
         freeTimes.forEach(x -> x.setName("free"));
-        freeTimes.forEach(x -> System.out.println("-------------- "+x.getEnd()));
-        System.out.println("-------------- "+end);
         model.addObject("freeTimes", timeLineService.aggregateCalendarEvents(start, end, freeTimes));
 
         return model;
@@ -619,12 +608,10 @@ public class ViewController {
         return model;
     }
 
-    /*@ExceptionHandler(Exception.class)
+    @ExceptionHandler(Exception.class)
     private ModelAndView get500InternalErrorResponse(Exception e){
-        System.out.println(e);
         ModelAndView model = new ModelAndView("Generic/Error/500InternalError");
         model.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
         return model;
-    }*/
-
+    }
 }

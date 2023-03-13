@@ -8,7 +8,11 @@ public class DayOfMonth {
     @Getter
     private final String number;
 
-    public DayOfMonth(int number){
+    @Getter
+    private final boolean weekend;
+
+    public DayOfMonth(int number, boolean weekend){
         this.number = number+"";
+        this.weekend = weekend;
     }
 }

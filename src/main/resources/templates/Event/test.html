@@ -80,6 +80,7 @@
                         <tr>
                             <div th:each="month : ${months}">
                                 <th th:each="day : ${month.days}"
+                                    th:style="${day.weekend ? 'color: red;' : _ }"
                                     class="mdl-data-table__cell--non-numeric"
                                     th:text="${day.number}"> Name </th>
                             </div>
@@ -93,7 +94,7 @@
                             <td th:each="cevent : ${peep.calendarEvents}"
                                 class="mdl-data-table__cell--non-numeric"
                                 th:colspan="${cevent.duration}"
-                                th:style="${cevent.name} == null ? 'background: white' : 'background: red'">
+                                th:style="${cevent.name} == null ? 'background: white' : 'background: MistyRose'">
                                 <span th:text="${cevent.name}"> Name </span>
                             </td>
                         </tr>
@@ -110,7 +111,7 @@
                             <td th:each="freeEvent : ${freeTimes}"
                                 class="mdl-data-table__cell--non-numeric"
                                 th:colspan="${freeEvent.duration}"
-                                th:style="${freeEvent.name} == null ? 'background: white' : 'background: green'"
+                                th:style="${freeEvent.name} == null ? 'background: white' : 'background: rgb(230, 250, 210)'"
                                 th:attr="onclick=|openAddEvent('${freeEvent.start}','${freeEvent.end}')|">
                                 <span th:text="${freeEvent.name}"> Name </span>
                             </td>
