@@ -404,7 +404,7 @@ public class ViewController {
         return new ModelAndView("redirect:/view/events/show?eventId="+eventId);
     }
 
-    @PostMapping(value = "/events/save")
+    @PostMapping(value = "/events/plan", params = "save")
     public ModelAndView saveEvent(
             @ModelAttribute
             Event event,
@@ -483,7 +483,7 @@ public class ViewController {
         return new ModelAndView( "Event/confirm");
     }
 
-    @PostMapping(value = "/events/plan")
+    @PostMapping(value = "/events/plan", params = "update")
     public ModelAndView updateEventPlannerConfig(
             @ModelAttribute
             Event event

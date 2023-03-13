@@ -12,13 +12,13 @@
             <div class="title-screen-section mdl-typography--text-center">
                 <div class="mdl-typography--display-1-color-contrast pageTitle">Plan Event</div>
             </div>
-            <div class="mdl-shadow--2dp mdl-color--white mdl-cell mdl-cell--8-col centerContentBox">
-                <div class="mdl-typography--headline mdl-typography--text-center pageTitle">
-                    Planner Configuration
-                </div>
-                <form th:action="@{/view/events/plan}"
-                      th:object="${event_config}"
-                      method="post">
+            <form th:action="@{/view/events/plan}"
+                  th:object="${event_config}"
+                  method="post">
+                <div class="mdl-shadow--2dp mdl-color--white mdl-cell mdl-cell--8-col centerContentBox">
+                    <div class="mdl-typography--headline mdl-typography--text-center pageTitle">
+                        Planner Configuration
+                    </div>
 
                     <div class="mdl-typography--text-center">
                         <div style="margin-bottom: 10px">
@@ -39,6 +39,8 @@
                                 <option th:each="level : ${selectableImportances}" th:value="${level.level}" th:text="${level}"></option>
                             </select>
                         </div>
+                        <span>Timeframe to look for a suitable event time (actual event below)</span>
+                        <br/>
                         <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                             <input class="mdl-textfield__input"
                                    type="date"
@@ -54,141 +56,128 @@
                                    id="endField">
                             <label class="mdl-textfield__label" for="endField">Timeframe end</label>
                         </div>
-                        <input type="hidden" th:field="*{eventPlannerConfig.id}"/>
-                        <input type="hidden" th:field="*{startDate}"/>
-                        <input type="hidden" th:field="*{endDate}"/>
-                        <input type="hidden" th:field="*{id}"/>
-                        <input type="hidden" th:field="*{description}"/>
-                        <input type="hidden" th:field="*{groupName}"/>
-                        <input type="hidden" th:field="*{personIdsAccepted}"/>
                     </div>
                     <div class="mdl-typography--text-right">
                         <button type="submit"
-                                class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
+                                class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+                                name="update">
                             Update
                         </button>
                     </div>
-                </form>
-            </div>
-            <br/>
-            <div class="mdl-shadow--2dp mdl-color--white mdl-cell mdl-cell--8-col centerContentTableBox">
-                <table class="mdl-data-table mdl-js-data-table">
-                    <thead>
-                    <tr>
-                        <th class="mdl-data-table__cell--non-numeric"
-                            rowspan="2"> Name </th>
-                        <th th:each="month : ${months}"
-                            th:colspan="${month.length}"
-                            class="mdl-data-table__cell--non-numeric"
-                            th:text="${month.name}"> Name </th>
-                    </tr>
-                    <tr>
-                        <div th:each="month : ${months}">
-                            <th th:each="day : ${month.days}"
+                </div>
+                <br/>
+                <div class="mdl-shadow--2dp mdl-color--white mdl-cell mdl-cell--8-col centerContentTableBox">
+                    <table class="mdl-data-table mdl-js-data-table">
+                        <thead>
+                        <tr>
+                            <th class="mdl-data-table__cell--non-numeric"
+                                rowspan="2"> Name </th>
+                            <th th:each="month : ${months}"
+                                th:colspan="${month.length}"
                                 class="mdl-data-table__cell--non-numeric"
-                                th:text="${day.number}"> Name </th>
+                                th:text="${month.name}"> Name </th>
+                        </tr>
+                        <tr>
+                            <div th:each="month : ${months}">
+                                <th th:each="day : ${month.days}"
+                                    class="mdl-data-table__cell--non-numeric"
+                                    th:text="${day.number}"> Name </th>
+                            </div>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="peep : ${people}" style="cursor: pointer">
+                            <td class="mdl-data-table__cell--non-numeric">
+                                <span th:text="${peep.person.name}"> Name </span>
+                            </td>
+                            <td th:each="cevent : ${peep.calendarEvents}"
+                                class="mdl-data-table__cell--non-numeric"
+                                th:colspan="${cevent.duration}"
+                                th:style="${cevent.name} == null ? 'background: white' : 'background: red'">
+                                <span th:text="${cevent.name}"> Name </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="mdl-data-table__cell--non-numeric mdl-color--grey-100"
+                                th:colspan="${duration}+1">
+                                Remaining free times:
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+
+                            </td>
+                            <td th:each="freeEvent : ${freeTimes}"
+                                class="mdl-data-table__cell--non-numeric"
+                                th:colspan="${freeEvent.duration}"
+                                th:style="${freeEvent.name} == null ? 'background: white' : 'background: green'"
+                                th:attr="onclick=|openAddEvent('${freeEvent.start}','${freeEvent.end}')|">
+                                <span th:text="${freeEvent.name}"> Name </span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <br/>
+                <div class="mdl-shadow--2dp mdl-color--white mdl-cell mdl-cell--8-col centerContentBox">
+                    <a name="dialogCreate"></a>
+                    <div class="mdl-typography--headline mdl-typography--text-center pageTitle"
+                    th:text="${event_config.id} == null ? 'Create Event' : 'Edit Event'" >
+                        Title
+                    </div>
+                    <div th:if="${errorText} != null">
+                        <div class="mdl-typography--title mdl-typography--text-center pageTitle"
+                            style="color: red"
+                            th:text="${errorText}">
+                            Error
                         </div>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="peep : ${people}" style="cursor: pointer">
-                        <td class="mdl-data-table__cell--non-numeric">
-                            <span th:text="${peep.person.name}"> Name </span>
-                        </td>
-                        <td th:each="cevent : ${peep.calendarEvents}"
-                            class="mdl-data-table__cell--non-numeric"
-                            th:colspan="${cevent.duration}"
-                            th:style="${cevent.name} == null ? 'background: white' : 'background: red'">
-                            <span th:text="${cevent.name}"> Name </span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="mdl-data-table__cell--non-numeric mdl-color--grey-100"
-                            th:colspan="${duration}+1">
-                            Remaining free times:
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
+                    </div>
 
-                        </td>
-                        <td th:each="freeEvent : ${freeTimes}"
-                            class="mdl-data-table__cell--non-numeric"
-                            th:colspan="${freeEvent.duration}"
-                            th:style="${freeEvent.name} == null ? 'background: white' : 'background: green'"
-                            th:attr="onclick=|openAddEvent('${freeEvent.start}','${freeEvent.end}')|">
-                            <span th:text="${freeEvent.name}"> Name </span>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <br/>
-        <div class="mdl-shadow--2dp mdl-color--white mdl-cell mdl-cell--8-col centerContentBox">
-            <a name="dialogCreate"></a>
-            <div class="mdl-typography--headline mdl-typography--text-center pageTitle"
-            th:text="${event_config.id} == null ? 'Create Event' : 'Edit Event'" >
-                Title
-            </div>
-            <div th:if="${errorText} != null">
-                <div class="mdl-typography--title mdl-typography--text-center pageTitle"
-                     style="color: red"
-                     th:text="${errorText}">
-                    Error
-                </div>
-            </div>
-            <form th:action="@{/view/events/save}"
-                  th:object="${event_config}"
-                  method="post">
-
-                <div class="mdl-typography--text-center">
-                    <div style="margin-bottom: 10px">
-                        <span>Group</span>
+                    <div class="mdl-typography--text-center">
+                        <div style="margin-bottom: 10px">
+                            <span>Group</span>
+                            <br/>
+                            <select class="form-control"
+                                    th:field="*{groupName}">
+                                <option th:each="group : ${selectableGroups}" th:value="${group}" th:text="${group}"></option>
+                            </select>
+                        </div>
+                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                            <input class="mdl-textfield__input"
+                                type="date"
+                                th:field="*{startDate}"
+                                th:min="*{eventPlannerConfig.start}"
+                                th:max="*{eventPlannerConfig.end}"
+                                id="startField2">
+                            <label class="mdl-textfield__label" for="startField2">From</label>
+                        </div>
+                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                            <input class="mdl-textfield__input"
+                                type="date"
+                                th:field="*{endDate}"
+                                th:min="*{eventPlannerConfig.start}"
+                                th:max="*{eventPlannerConfig.end}"
+                                id="endField2">
+                            <label class="mdl-textfield__label" for="endField2">To</label>
+                        </div>
                         <br/>
-                        <select class="form-control"
-                                th:field="*{groupName}">
-                            <option th:each="group : ${selectableGroups}" th:value="${group}" th:text="${group}"></option>
-                        </select>
+                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                            <textarea class="mdl-textfield__input" type="text" rows="3" maxrows="6"
+                                    id="descriptionField"
+                                        th:field="*{description}"></textarea>
+                            <label class="mdl-textfield__label" for="descriptionField">Description</label>
+                        </div>
+                        <input type="hidden" th:field="*{id}"/>
+                        <input type="hidden" th:field="*{personIdsAccepted}"/>
+                        <input type="hidden" th:field="*{eventPlannerConfig.id}"/>
                     </div>
-                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                        <input class="mdl-textfield__input"
-                               type="date"
-                               th:field="*{startDate}"
-                               th:min="*{eventPlannerConfig.start}"
-                               th:max="*{eventPlannerConfig.end}"
-                               id="startField2">
-                        <label class="mdl-textfield__label" for="startField2">From</label>
+                    <div class="mdl-typography--text-right">
+                        <button type="submit"
+                                class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+                                name="save">
+                            Submit
+                        </button>
                     </div>
-                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                        <input class="mdl-textfield__input"
-                               type="date"
-                               th:field="*{endDate}"
-                               th:min="*{eventPlannerConfig.start}"
-                               th:max="*{eventPlannerConfig.end}"
-                               id="endField2">
-                        <label class="mdl-textfield__label" for="endField2">To</label>
-                    </div>
-                    <br/>
-                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                        <textarea class="mdl-textfield__input" type="text" rows="3" maxrows="6"
-                                  id="descriptionField"
-                                    th:field="*{description}"></textarea>
-                        <label class="mdl-textfield__label" for="descriptionField">Description</label>
-                    </div>
-                    <input type="hidden" th:field="*{id}"/>
-                    <input type="hidden" th:field="*{personIds}"/>
-                    <input type="hidden" th:field="*{personIdsAccepted}"/>
-                    <input type="hidden" th:field="*{eventPlannerConfig.id}"/>
-                    <input type="hidden" th:field="*{eventPlannerConfig.start}"/>
-                    <input type="hidden" th:field="*{eventPlannerConfig.end}"/>
-                    <input type="hidden" th:field="*{eventPlannerConfig.ignoreAbsenceToLevel}"/>
-                </div>
-                <div class="mdl-typography--text-right">
-                    <button type="submit"
-                            class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
-                        Submit
-                    </button>
                 </div>
             </form>
         </div>
