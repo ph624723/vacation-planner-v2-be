@@ -122,24 +122,26 @@ public class ViewController {
         }
 
         ModelAndView model = new ModelAndView("Person/show");
-        String titleText;
-        List<AbsenceEntity> absences;
-        PersonEntity person = null;
 
         UserEntity authUser = userService.getCurrentlyAuthenticatedUser();
 
-        person = personJpaRepository.findById(personId).get();
-        absences = absenceJpaRepository.findByPerson(person);
+        PersonEntity person = personJpaRepository.findById(personId).get();
+        List<AbsenceEntity> absenceEntities = absenceJpaRepository.findByPerson(person);
+        List<Absence> absences = absenceEntities.stream()
+                .sorted(Comparator.comparing(AbsenceEntity::getStartDate))
+                .map(x -> Absence.fromEntity(x.trimDescription())).collect(Collectors.toList());
+        List<String> personNames = absenceEntities.stream().map(x -> x.getPerson().getName()).collect(Collectors.toList());
+        List<Long> durations = absences.stream().map(x -> timeLineService.diffInDays(x.getStartDate(),x.getEndDate())+1).collect(Collectors.toList());
         List<Event> events = eventJpaRepository.findByGroupIn(authUser.getPersonData().getRoles()).stream()
                 .filter(x -> x.getPersons().stream().anyMatch(y -> y.getId().equals(personId)))
                 .sorted(Comparator.comparing(EventEntity::getStartDate))
                 .map(x -> Event.fromEntity(x))
                 .collect(Collectors.toList());
-        titleText = person.getName();
-
-        absences = absences.stream().map(x -> x.trimDescription()).sorted(Comparator.comparing(AbsenceEntity::getStartDate)).collect(Collectors.toList());
+        String  titleText = person.getName();
 
         model.addObject("absences", absences);
+        model.addObject("personNames", personNames);
+        model.addObject("durations", durations);
         model.addObject("events", events);
         model.addObject("titleText", titleText);
         model.addObject("person", person);
@@ -153,12 +155,20 @@ public class ViewController {
         ModelAndView model = new ModelAndView("Absence/list");
 
         String titleText = "all persons";
-        List<AbsenceEntity> absences = absenceJpaRepository.findByPersonIn(personService.getAvailablePersons());
+        List<AbsenceEntity> absenceEntities = absenceJpaRepository.findByPersonIn(personService.getAvailablePersons());
+        List<Absence> absences = absenceEntities.stream()
+                .sorted(Comparator.comparing(AbsenceEntity::getStartDate))
+                .map(x -> Absence.fromEntity(x))
+                .collect(Collectors.toList());
+        List<String> personNames = absenceEntities.stream().map(x -> x.getPerson().getName()).collect(Collectors.toList());
+        List<Long> durations = absences.stream().map(x -> timeLineService.diffInDays(x.getStartDate(),x.getEndDate())+1).collect(Collectors.toList());
 
 
-        absences = absences.stream().map(x -> x.trimDescription()).sorted(Comparator.comparing(AbsenceEntity::getStartDate)).collect(Collectors.toList());
+        absenceEntities = absenceEntities.stream().map(x -> x.trimDescription()).sorted(Comparator.comparing(AbsenceEntity::getStartDate)).collect(Collectors.toList());
 
         model.addObject("absences", absences);
+        model.addObject("personNames", personNames);
+        model.addObject("durations", durations);
         model.addObject("titleText", titleText);
         model.addObject("person", null);
         model.addObject("personId", -1);
@@ -609,11 +619,12 @@ public class ViewController {
         return model;
     }
 
-    @ExceptionHandler(Exception.class)
-    private ModelAndView get500InternalErrorResponse(){
+    /*@ExceptionHandler(Exception.class)
+    private ModelAndView get500InternalErrorResponse(Exception e){
+        System.out.println(e);
         ModelAndView model = new ModelAndView("Generic/Error/500InternalError");
         model.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
         return model;
-    }
+    }*/
 
 }

@@ -22,18 +22,20 @@
                         <tr>
                             <th th:if="${person == null}" class="mdl-data-table__cell--non-numeric"> Person</th>
                             <th class="mdl-data-table__cell--non-numeric"> Start </th>
+                            <th class="mdl-data-table__cell--non-numeric"> Duration </th>
                             <th class="mdl-data-table__cell--non-numeric"> Description </th>
                         </tr>
                         </thead>
                         <tbody>
                         <tr th:if="${absences.empty}">
                             <td class="mdl-data-table__cell--non-numeric"
-                                colspan="2"> No Absence Available </td>
+                                colspan="3"> No Absence Available </td>
                         </tr>
-                        <tr th:each="absence : ${absences}" style="cursor: pointer"
+                        <tr th:each="absence,iterStat : ${absences}" style="cursor: pointer"
                             th:onclick="'javascript:openEditAbsence(\'' + ${absence.id} + '\');'">
-                            <td th:if="${person == null}" class="mdl-data-table__cell--non-numeric"><span th:text="${absence.person.name}"> Person </span></td>
+                            <td th:if="${person == null}" class="mdl-data-table__cell--non-numeric"><span th:text="${personNames[iterStat.index]}"> Person </span></td>
                             <td class="mdl-data-table__cell--non-numeric"><span th:text="${absence.startDate}"> Start </span></td>
+                            <td class="mdl-data-table__cell--non-numeric"><span th:text="${durations[iterStat.index]}"> Duration </span></td>
                             <td class="mdl-data-table__cell--non-numeric"><span th:text="${absence.description}"> Description </span></td>
                         </tr>
                         </tbody>
