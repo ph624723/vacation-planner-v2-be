@@ -173,6 +173,8 @@
                         <input type="hidden" th:field="*{eventPlannerConfig.id}"/>
                     </div>
                     <div class="mdl-typography--text-right">
+                        <input id="notifyCheckbox" name="sendNotifications" type="checkbox" checked>
+                        <label for="notifyCheckbox" style="margin-right:10px">Send email notifications</label>
                         <button type="submit"
                                 class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
                                 name="save">

@@ -496,7 +496,9 @@ public class ViewController {
     public ModelAndView saveEvent(
             @ModelAttribute
             Event event,
-            HttpServletRequest request
+            HttpServletRequest request,
+            @RequestParam(required = false)
+            boolean sendNotifications
     ){
         if(event.getGroupName() == null){
             ModelAndView model = setupEventPlannerView(event);
@@ -550,10 +552,12 @@ public class ViewController {
             Set<PersonEntity> mailPersons = eventEntity.getPersons().stream()
                     .filter(x -> finalMailPeopleIds.contains(x.getId()))
                     .collect(Collectors.toSet());
-            eventService.sendEmailNotifications(eventEntity,mailPersons,url,personEntity.getName());
-            if(eventEntity.getAcceptedPersons().equals(eventEntity.getPersons())){
-                //event fully accepted
-                eventService.sendAllAcceptedMail(eventEntity,url);
+            if(sendNotifications){
+                eventService.sendEmailNotifications(eventEntity,mailPersons,url,personEntity.getName());
+                if(eventEntity.getAcceptedPersons().equals(eventEntity.getPersons())){
+                    //event fully accepted
+                    eventService.sendAllAcceptedMail(eventEntity,url);
+                }
             }
         }catch (PersonNotFoundException e){
             return new ModelAndView("redirect:/view/home");
