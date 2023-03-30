@@ -1,18 +1,14 @@
 package com.ph.rest.webservices.restfulwebservices.controller;
 
-import com.ph.model.EmailFailedException;
-import com.ph.model.PersonNotFoundException;
-import com.ph.model.TimeSpan;
+import com.ph.model.*;
 import com.ph.persistence.model.*;
-import com.ph.persistence.repository.AbsenceJpaRepository;
-import com.ph.persistence.repository.EventJpaRepository;
-import com.ph.persistence.repository.PersonJpaRepository;
-import com.ph.persistence.repository.UserJpaRepository;
+import com.ph.persistence.repository.*;
 import com.ph.rest.webservices.restfulwebservices.Service.EventService;
 import com.ph.rest.webservices.restfulwebservices.Service.PersonService;
 import com.ph.rest.webservices.restfulwebservices.Service.TimeLineService;
 import com.ph.rest.webservices.restfulwebservices.Service.UserService;
 import com.ph.rest.webservices.restfulwebservices.model.*;
+import com.ph.rest.webservices.restfulwebservices.viewmodel.CommentViewModel;
 import com.ph.service.AuthService;
 import com.ph.service.FreeTimeService;
 import com.ph.service.HashService;
@@ -54,6 +50,9 @@ public class ViewController {
 
     @Autowired
     UserJpaRepository userJpaRepository;
+
+    @Autowired
+    CommentJpaRepository commentJpaRepository;
 
     @Autowired
     TimeLineService timeLineService;
@@ -298,6 +297,95 @@ public class ViewController {
         return new ModelAndView("redirect:/view/home");
     }
 
+    @PostMapping(value ="/events/comments/delete/{commentId}")
+    public ModelAndView deleteComment(
+            @PathVariable
+            long commentId
+    ){
+        UserEntity currentUser = userService.getCurrentlyAuthenticatedUser();
+
+        CommentEntity comment = commentJpaRepository.findById(commentId).get();
+        if(!currentUser.getPersonData().getComments().stream().anyMatch(x -> x.getId().equals(commentId))){
+            return get403ResourceNoAccessErrorResponse();
+        }
+        long eventId = comment.getEvent().getId();
+        for (CommentEntity replier : comment.getRepliedBy()) {
+            replier.setReplyTo(null);
+            commentJpaRepository.save(replier);
+        }
+        PersonEntity person = comment.getPerson();
+        person.getComments().remove(comment);
+        personJpaRepository.save(person);
+        EventEntity event = comment.getEvent();
+        event.getComments().remove(comment);
+        commentJpaRepository.delete(comment);
+        return new ModelAndView("redirect:/view/events/show?eventId="+eventId);
+    }
+
+    @GetMapping(value = "/events/comments/editComment")
+    public ModelAndView  editCommentView(
+            @RequestParam(required = true)
+            long eventId,
+            @RequestParam(required = false)
+            Long replyToId,
+            @RequestParam(required = false)
+            Long commentId
+    ){
+        ModelAndView model = new ModelAndView("Event/editComment");
+
+        EventEntity eventEntity = eventJpaRepository.findById(eventId).get();
+        UserEntity currentUser = userService.getCurrentlyAuthenticatedUser();
+        if(!eventEntity.getPersons().contains(currentUser.getPersonData())){
+            return get403ResourceNoAccessErrorResponse();
+        }
+
+        Comment comment;
+        if(commentId != null) {
+            comment = Comment.fromEntity(eventEntity.getComments().stream().filter(x -> x.getId().equals(commentId)).findAny().get());
+            if(!currentUser.getPersonData().getId().equals(comment.getPersonId())){
+                return get403ResourceNoAccessErrorResponse();
+            }
+        }else{
+            comment = new Comment();
+            comment.setPersonId(currentUser.getPersonData().getId());
+            comment.setEventId(eventId);
+        }
+        if(replyToId != null){
+            comment.setReplyToId(replyToId);
+        }
+
+        List<CommentViewModel> availableComments = eventEntity.getComments().stream()
+                .filter(x -> !x.getId().equals(commentId))
+                .map(x -> CommentViewModel.fromEntity(x)).collect(Collectors.toList());
+
+
+        model.addObject("comment", comment);
+        model.addObject("availableComments", availableComments);
+
+        return model;
+    }
+
+    @PostMapping(value = "/events/comments/editComment")
+    public ModelAndView saveComment(@ModelAttribute Comment comment) throws PersonNotFoundException, EventNotFoundException, CommentNotFoundException {
+        System.out.println("a------------------"+comment);
+        UserEntity currentUser = userService.getCurrentlyAuthenticatedUser();
+        EventEntity eventEntity = eventJpaRepository.findById(comment.getEventId()).get();
+        if(!currentUser.getPersonData().getId().equals(comment.getPersonId()) || !eventEntity.getPersons().contains(currentUser.getPersonData())){
+            return get403ResourceNoAccessErrorResponse();
+        }
+        System.out.println("a------------------test1");
+        if(comment.getReplyToId() != null && comment.getReplyToId().equals((long)-1))
+            comment.setReplyToId(null);
+        System.out.println("a------------------test2");
+        CommentEntity oldComment = null;
+        if(comment.getId() != null)
+            oldComment = commentJpaRepository.findById(comment.getId()).orElse(null);
+        System.out.println("a------------------test3");
+        commentJpaRepository.save(comment.toEntity(oldComment,personJpaRepository,eventJpaRepository,commentJpaRepository));
+        System.out.println("a------------------test4");
+        return new ModelAndView("redirect:/view/events/show?eventId="+comment.getEventId());
+    }
+
     @GetMapping(value = "/events/show")
     public ModelAndView  showEventView(
             @RequestParam()
@@ -316,10 +404,13 @@ public class ViewController {
         List<Person> personsNotAccepted = eventEntity.getPersons().stream()
                 .filter(x -> !eventEntity.getAcceptedPersons().contains(x))
                 .map(x -> Person.fromEntity(x)).collect(Collectors.toList());
+        List<CommentViewModel> comments = eventEntity.getComments().stream().map(x -> CommentViewModel.fromEntity(x)).collect(Collectors.toList());
+        comments.forEach(x -> x.setEditable(x.getPerson().getId().equals(currentUser.getPersonData().getId())));
 
         model.addObject("event", event);
         model.addObject("personsAccepted", personsAccepted);
         model.addObject("personsMissing", personsNotAccepted);
+        model.addObject("comments", comments);
 
         boolean isAccepted = personsAccepted.stream().anyMatch(x -> x.getId() == currentUser.getPersonData().getId());
         model.addObject("isAccepted", isAccepted);

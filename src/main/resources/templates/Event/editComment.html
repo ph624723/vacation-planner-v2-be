@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org">
+<head th:insert="index :: head(titleText='Comment - Vacation Planner')">
+</head>
+<body>
+<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+    <div th:replace="index :: headerContent"> </div>
+    <div th:replace="index :: drawerContent"> </div>
+    <main class="mdl-layout__content mdl-color--grey-100">
+        <a name="top"></a>
+        <div class="page-content">
+            <div class="title-screen-section mdl-typography--text-center">
+                <div class="mdl-typography--display-1-color-contrast pageTitle"
+                     th:text="${comment.id}==null ? 'Add Comment' : 'Edit Comment'">
+                    Title
+                </div>
+            </div>
+            <div class="mdl-shadow--2dp mdl-color--white mdl-cell centerContentBox dialogContentBox">
+                <form th:action="@{/view/events/comments/editComment}"
+                      th:object="${comment}"
+                      method="post">
+                    <div class="mdl-typography--text-center">
+                        <table th:if="${comment.replyToId}!=null">
+                            <tr>
+                                <td class="mdl-typography--text-left">
+                                    <span>Reply for</span>
+                                </td>
+                                <td class="mdl-typography--text-left">
+                                    <select class="form-control"
+                                            th:field="*{replyToId}">
+                                        <option value="-1">No Reply</option>
+                                        <option th:each="repComment : ${availableComments}" th:value="${repComment.id}" th:text="${repComment.person.name}+' {'+${repComment.id}+'}'"></option>
+                                    </select>
+                                </td>
+                            </tr>
+                        </table>
+                        <br/>
+                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                            <input class="mdl-textfield__input"
+                                   type="text"
+                                   th:field="*{content}"
+                                   id="descriptionField">
+                            <label class="mdl-textfield__label" for="descriptionField">Content</label>
+                        </div>
+                        <input type="hidden"
+                               th:field="*{id}"/>
+                        <input type="hidden"
+                               th:field="*{personId}"/>
+                        <input type="hidden"
+                               th:field="*{eventId}"/>
+                    </div>
+                    <div class="mdl-typography--text-right">
+                        <button type="submit"
+                                class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
+                            Submit
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <footer th:replace="index :: footerContent"> </footer>
+    </main>
+</div>
+<script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+</body>
+</html>
+

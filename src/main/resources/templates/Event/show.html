@@ -92,6 +92,76 @@
             </div>
             <br/>
         </div>
+
+        <div class="mdl-shadow--2dp mdl-color--white mdl-cell mdl-cell--8-col" style="margin: auto">
+            <div th:each="comment : ${comments}">
+                <div th:id="'com'+${comment.id}" class="centerCommentBox">
+                    <div>
+                        <div style="display:inline-block">
+                            <h5 th:text="${comment.person.name}+' {'+${comment.id}+'}'"/>
+                        </div>
+                        <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"
+                                th:id="'btn'+${comment.id}"
+                                th:if="${comment.editable}"
+                                style="float:right; margin-top:20px">
+                            <i class="material-icons">more_vert</i>
+                        </button>
+                        <div th:if="${comment.replyTo} != null">
+                            <span th:text="'Reply for '"/>
+                            <a th:text="${comment.replyTo.person.name}+' {'+${comment.replyTo.id}+'}'"
+                               th:href="'#com'+${comment.replyTo.id}"></a>
+                        </div>
+                        <div th:text="${comment.content}"/>
+                    </div>
+                    <div class="mdl-card__actions">
+                        <form th:action="@{/view/events/comments/editComment}" method="get">
+                            <input type="hidden"
+                                   th:value="${event.id}"
+                                   th:name="eventId"/>
+                            <input type="hidden"
+                                   th:value="${comment.id}"
+                                   th:name="replyToId"/>
+                            <input type="submit" class="mdl-button" style="color: #00BCD4" value="Reply"></input>
+                        </form>
+
+                    </div>
+
+                    <ul class="mdl-menu mdl-js-menu" th:for="'btn'+${comment.id}">
+                        <li class="mdl-menu__item">
+                            <form th:action="@{/view/events/comments/editComment}" method="get">
+                                <input type="hidden"
+                                       th:value="${event.id}"
+                                       th:name="eventId"/>
+                                <input type="hidden"
+                                       th:value="${comment.id}"
+                                       th:name="commentId"/>
+                                <input type="submit" value="Edit" class="mdl-color--white" style="border:none"></input>
+                            </form>
+                        </li>
+                        <li class="mdl-menu__item" th:if="true">
+                            <form th:action="@{/view/events/comments/delete/}+${comment.id}" method="post">
+                                <input type="submit" value="Delete" class="mdl-color--white" style="border:none"></input>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+                <div class="android-drawer-separator"></div>
+            </div>
+            <div class="mdl-typography--text-right">
+                <form th:action="@{/view/events/comments/editComment}" method="get">
+                    <input type="hidden"
+                           th:value="${event.id}"
+                           th:name="eventId"/>
+                    <button type="submit"
+                            style="margin-right:20px;margin-bottom:20px;margin-top:10px"
+                            class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
+                        Comment
+                    </button>
+                </form>
+            </div>
+        </div>
+
+
         <footer th:replace="index :: footerContent"> </footer>
     </main>
 </div>

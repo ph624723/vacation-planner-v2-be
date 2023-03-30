@@ -65,6 +65,12 @@ public class PersonEntity {
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.DETACH, CascadeType.MERGE})
     private List<RoleEntity> roles;
 
+    @Getter
+    @Setter
+    @OneToMany(mappedBy = "person")
+    @Cascade(org.hibernate.annotations.CascadeType.ALL)
+    private List<CommentEntity> comments;
+
     public PersonEntity(){
         roles = new ArrayList<>();
         events = new ArrayList<>();

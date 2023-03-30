@@ -3,6 +3,7 @@ package com.ph.persistence.model;
 import com.ph.model.TimeSpan;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -45,6 +46,12 @@ public class EventEntity {
 	@Getter
 	@Setter
 	private java.sql.Date endDate;
+
+	@Getter
+	@Setter
+	@OneToMany(mappedBy = "event")
+	@Cascade(org.hibernate.annotations.CascadeType.ALL)
+	private List<CommentEntity> comments;
 
 	@Getter
 	@Setter
