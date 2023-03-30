@@ -9,16 +9,12 @@ import com.ph.rest.webservices.restfulwebservices.Service.TimeLineService;
 import com.ph.rest.webservices.restfulwebservices.Service.UserService;
 import com.ph.rest.webservices.restfulwebservices.model.*;
 import com.ph.rest.webservices.restfulwebservices.viewmodel.CommentViewModel;
-import com.ph.service.AuthService;
+import com.ph.service.EmailService;
 import com.ph.service.FreeTimeService;
 import com.ph.service.HashService;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -26,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import springfox.documentation.annotations.ApiIgnore;
 
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.sql.Date;
@@ -65,6 +60,8 @@ public class ViewController {
 
     @Autowired
     PersonService personService;
+    @Autowired
+    EmailService emailService;
 
     private final String APP_BASE_URL = "http://vacationplannerv2-be-dev3.eba-pisehxks.us-east-1.elasticbeanstalk.com/view/events/show?eventId=";
 
@@ -367,22 +364,20 @@ public class ViewController {
 
     @PostMapping(value = "/events/comments/editComment")
     public ModelAndView saveComment(@ModelAttribute Comment comment) throws PersonNotFoundException, EventNotFoundException, CommentNotFoundException {
-        System.out.println("a------------------"+comment);
         UserEntity currentUser = userService.getCurrentlyAuthenticatedUser();
         EventEntity eventEntity = eventJpaRepository.findById(comment.getEventId()).get();
         if(!currentUser.getPersonData().getId().equals(comment.getPersonId()) || !eventEntity.getPersons().contains(currentUser.getPersonData())){
             return get403ResourceNoAccessErrorResponse();
         }
-        System.out.println("a------------------test1");
         if(comment.getReplyToId() != null && comment.getReplyToId().equals((long)-1))
             comment.setReplyToId(null);
-        System.out.println("a------------------test2");
         CommentEntity oldComment = null;
         if(comment.getId() != null)
             oldComment = commentJpaRepository.findById(comment.getId()).orElse(null);
-        System.out.println("a------------------test3");
-        commentJpaRepository.save(comment.toEntity(oldComment,personJpaRepository,eventJpaRepository,commentJpaRepository));
-        System.out.println("a------------------test4");
+        CommentEntity savedComment = commentJpaRepository.save(comment.toEntity(oldComment,personJpaRepository,eventJpaRepository,commentJpaRepository));
+
+        String url = APP_BASE_URL+eventEntity.getId();
+        eventService.sendNewCommentMail(eventEntity,url, savedComment);
         return new ModelAndView("redirect:/view/events/show?eventId="+comment.getEventId());
     }
 
@@ -404,7 +399,9 @@ public class ViewController {
         List<Person> personsNotAccepted = eventEntity.getPersons().stream()
                 .filter(x -> !eventEntity.getAcceptedPersons().contains(x))
                 .map(x -> Person.fromEntity(x)).collect(Collectors.toList());
-        List<CommentViewModel> comments = eventEntity.getComments().stream().map(x -> CommentViewModel.fromEntity(x)).collect(Collectors.toList());
+        List<CommentViewModel> comments = eventEntity.getComments().stream()
+                .sorted(Comparator.comparing(CommentEntity::getCreated))
+                .map(x -> CommentViewModel.fromEntity(x)).collect(Collectors.toList());
         comments.forEach(x -> x.setEditable(x.getPerson().getId().equals(currentUser.getPersonData().getId())));
 
         model.addObject("event", event);
