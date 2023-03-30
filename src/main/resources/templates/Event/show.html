@@ -98,7 +98,7 @@
                 <div th:id="'com'+${comment.id}" class="centerCommentBox">
                     <div>
                         <div style="display:inline-block">
-                            <h5 th:text="${comment.person.name}+' {'+${comment.id}+'}'"/>
+                            <h5 th:text="${comment.person.name}"/>
                         </div>
                         <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon"
                                 th:id="'btn'+${comment.id}"
@@ -121,9 +121,10 @@
                             <input type="hidden"
                                    th:value="${comment.id}"
                                    th:name="replyToId"/>
-                            <input type="submit" class="mdl-button" style="color: #00BCD4" value="Reply"></input>
+                            <input type="submit" class="mdl-button" style="color: #00BCD4; display:inline-block" value="Reply"></input>
+                            <div style="float:right"
+                                 th:text="'{'+${comment.id}+'} '+${#dates.format(comment.created, 'dd.MM.yyyy HH:mm')}"></div>
                         </form>
-
                     </div>
 
                     <ul class="mdl-menu mdl-js-menu" th:for="'btn'+${comment.id}">
