@@ -27,7 +27,7 @@
             <div class="mdl-shadow--2dp mdl-color--white mdl-cell mdl-cell--8-col centerContentBox">
                 <div class="mdl-typography--text-center">
                     <div class="mdl-typography--title"
-                         th:text="${event.description}"/>
+                         th:utext="${#strings.replace( #strings.escapeXml( event.description ),T(java.lang.System).getProperty('line.separator'),'&lt;br /&gt;')}"/>
                     <br/>
                     <p>Accepted:</p>
                     <div th:each="person : ${personsAccepted}"
@@ -111,7 +111,7 @@
                             <a th:text="${comment.replyTo.person.name}+' {'+${comment.replyTo.id}+'}'"
                                th:href="'#com'+${comment.replyTo.id}"></a>
                         </div>
-                        <div th:text="${comment.content}"/>
+                        <div th:utext="${#strings.replace( #strings.escapeXml( comment.content ),T(java.lang.System).getProperty('line.separator'),'&lt;br /&gt;')}"/>
                     </div>
                     <div class="mdl-card__actions">
                         <form th:action="@{/view/events/comments/editComment}" method="get">
@@ -162,7 +162,7 @@
             </div>
         </div>
 
-
+        <br/>
         <footer th:replace="index :: footerContent"> </footer>
     </main>
 </div>

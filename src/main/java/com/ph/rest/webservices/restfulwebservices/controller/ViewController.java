@@ -363,7 +363,12 @@ public class ViewController {
     }
 
     @PostMapping(value = "/events/comments/editComment")
-    public ModelAndView saveComment(@ModelAttribute Comment comment) throws PersonNotFoundException, EventNotFoundException, CommentNotFoundException {
+    public ModelAndView saveComment(
+            @ModelAttribute
+            Comment comment,
+            @RequestParam(required = false)
+            boolean sendNotifications
+    ) throws PersonNotFoundException, EventNotFoundException, CommentNotFoundException {
         UserEntity currentUser = userService.getCurrentlyAuthenticatedUser();
         EventEntity eventEntity = eventJpaRepository.findById(comment.getEventId()).get();
         if(!currentUser.getPersonData().getId().equals(comment.getPersonId()) || !eventEntity.getPersons().contains(currentUser.getPersonData())){
@@ -376,8 +381,11 @@ public class ViewController {
             oldComment = commentJpaRepository.findById(comment.getId()).orElse(null);
         CommentEntity savedComment = commentJpaRepository.save(comment.toEntity(oldComment,personJpaRepository,eventJpaRepository,commentJpaRepository));
 
-        String url = APP_BASE_URL+eventEntity.getId();
-        eventService.sendNewCommentMail(eventEntity,url, savedComment);
+        if(sendNotifications){
+            String url = APP_BASE_URL+eventEntity.getId();
+            eventService.sendNewCommentMail(eventEntity,url, savedComment);
+        }
+
         return new ModelAndView("redirect:/view/events/show?eventId="+comment.getEventId());
     }
 
