@@ -100,26 +100,18 @@
                     <input type="hidden"
                            th:value="${event.id}"
                            th:name="eventId"/>
-                    <table style="display: inline-block">
-                        <tr>
-                            <td>
-                                <div class="mdl-textfield mdl-js-textfield" style="margin-right: 20px; vertical-align: middle">
-                                    <input class="mdl-textfield__input"
-                                           type="submit"
-                                           value=""
+                    <div class="mdl-textfield mdl-js-textfield" style="margin-right: 20px; vertical-align: middle">
+                        <input class="mdl-textfield__input"
+                               type="submit"
+                               value=""
 
-                                           id="addCommentDummy">
-                                    <label class="mdl-textfield__label" for="addCommentDummy">Add Comment</label>
-                                </div>
-                            </td>
-                            <td>
-                                <button type="submit"
-                                        class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
-                                    Comment
-                                </button>
-                            </td>
-                        </tr>
-                    </table>
+                               id="addCommentDummy">
+                        <label class="mdl-textfield__label" for="addCommentDummy">Add Comment</label>
+                    </div>
+                    <button type="submit"
+                            class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
+                        Comment
+                    </button>
                 </form>
             </div>
             <div th:each="comment : ${comments}">
