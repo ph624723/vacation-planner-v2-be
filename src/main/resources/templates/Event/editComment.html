@@ -20,21 +20,23 @@
                       th:object="${comment}"
                       method="post">
                     <div class="mdl-typography--text-center">
-                        <table th:if="${comment.replyToId}!=null">
-                            <tr>
-                                <td class="mdl-typography--text-left">
-                                    <span>Reply for</span>
-                                </td>
-                                <td class="mdl-typography--text-left">
-                                    <select class="form-control"
-                                            th:field="*{replyToId}">
-                                        <option value="-1">No Reply</option>
-                                        <option th:each="repComment : ${availableComments}" th:value="${repComment.id}" th:text="${repComment.person.name}+' {'+${repComment.id}+'}'"></option>
-                                    </select>
-                                </td>
-                            </tr>
-                        </table>
-                        <br/>
+                        <div th:if="${comment.replyToId}!=null">
+                            <table>
+                                <tr>
+                                    <td class="mdl-typography--text-left">
+                                        <span>Reply for</span>
+                                    </td>
+                                    <td class="mdl-typography--text-left">
+                                        <select class="form-control"
+                                                th:field="*{replyToId}">
+                                            <option value="-1">No Reply</option>
+                                            <option th:each="repComment : ${availableComments}" th:value="${repComment.id}" th:text="${repComment.person.name}+' {'+${repComment.id}+'}'"></option>
+                                        </select>
+                                    </td>
+                                </tr>
+                            </table>
+                            <br/>
+                        </div>
                         <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                             <textarea class="mdl-textfield__input"
                                    type="text" rows="5"

@@ -408,7 +408,7 @@ public class ViewController {
                 .filter(x -> !eventEntity.getAcceptedPersons().contains(x))
                 .map(x -> Person.fromEntity(x)).collect(Collectors.toList());
         List<CommentViewModel> comments = eventEntity.getComments().stream()
-                .sorted(Comparator.comparing(CommentEntity::getCreated))
+                .sorted(Comparator.comparing(CommentEntity::getCreated).reversed())
                 .map(x -> CommentViewModel.fromEntity(x)).collect(Collectors.toList());
         comments.forEach(x -> x.setEditable(x.getPerson().getId().equals(currentUser.getPersonData().getId())));
 
