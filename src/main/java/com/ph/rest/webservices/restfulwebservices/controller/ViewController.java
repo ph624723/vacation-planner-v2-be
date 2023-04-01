@@ -63,7 +63,7 @@ public class ViewController {
     @Autowired
     EmailService emailService;
 
-    private final String APP_BASE_URL = "http://vacationplannerv2-be-dev3.eba-pisehxks.us-east-1.elasticbeanstalk.com/view/events/show?eventId=";
+    private final String APP_BASE_URL = "http://vacationplannerv2-be-dev3.eba-pisehxks.us-east-1.elasticbeanstalk.com";
 
     @GetMapping(value = "/persons")
     public ModelAndView  allPersonsView(){
@@ -382,8 +382,7 @@ public class ViewController {
         CommentEntity savedComment = commentJpaRepository.save(comment.toEntity(oldComment,personJpaRepository,eventJpaRepository,commentJpaRepository));
 
         if(sendNotifications){
-            String url = APP_BASE_URL+eventEntity.getId();
-            eventService.sendNewCommentMail(eventEntity,url, savedComment);
+            eventService.sendNewCommentMail(eventEntity,APP_BASE_URL, savedComment);
         }
 
         return new ModelAndView("redirect:/view/events/show?eventId="+comment.getEventId());
@@ -440,8 +439,7 @@ public class ViewController {
 
         if(eventEntity.getAcceptedPersons().containsAll(eventEntity.getPersons())){
             //event fully accepted
-            String url = APP_BASE_URL+eventEntity.getId();
-            eventService.sendAllAcceptedMail(eventEntity,url);
+            eventService.sendAllAcceptedMail(eventEntity,APP_BASE_URL);
         }
 
         return new ModelAndView("redirect:/view/events/show?eventId="+eventId);
@@ -554,17 +552,15 @@ public class ViewController {
 
             eventEntity = eventJpaRepository.save(eventEntity);
 
-            String url = APP_BASE_URL+eventEntity.getId();
-
             Collection<Long> finalMailPeopleIds = mailPeopleIds;
             Set<PersonEntity> mailPersons = eventEntity.getPersons().stream()
                     .filter(x -> finalMailPeopleIds.contains(x.getId()))
                     .collect(Collectors.toSet());
             if(sendNotifications){
-                eventService.sendEmailNotifications(eventEntity,mailPersons,url,personEntity.getName());
+                eventService.sendEmailNotifications(eventEntity,mailPersons,APP_BASE_URL,personEntity.getName());
                 if(eventEntity.getAcceptedPersons().equals(eventEntity.getPersons())){
                     //event fully accepted
-                    eventService.sendAllAcceptedMail(eventEntity,url);
+                    eventService.sendAllAcceptedMail(eventEntity,APP_BASE_URL);
                 }
             }
         }catch (PersonNotFoundException e){

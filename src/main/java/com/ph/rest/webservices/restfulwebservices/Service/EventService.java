@@ -1,17 +1,14 @@
 package com.ph.rest.webservices.restfulwebservices.Service;
 
-import com.ph.model.EmailFailedException;
 import com.ph.persistence.model.CommentEntity;
 import com.ph.persistence.model.EventEntity;
 import com.ph.persistence.model.PersonEntity;
-import com.ph.rest.webservices.restfulwebservices.model.Event;
 import com.ph.service.EmailServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.Date;
 import java.text.SimpleDateFormat;
-import java.util.List;
 import java.util.Set;
 
 @Service
@@ -21,6 +18,7 @@ public class EventService {
     EmailServiceImpl emailService;
 
     public void sendEmailNotifications(EventEntity event, Set<PersonEntity> toPersons, String url, String senderName){
+        final String event_url = url+"/view/events/show?eventId="+event.getId();
         for (PersonEntity person : toPersons) {
             try {
                 System.out.println("try to send mail to "+person.getName());
@@ -31,7 +29,7 @@ public class EventService {
                                 event.getDescription(),
                                 event.getStartDate(),
                                 event.getEndDate(),
-                                url,
+                                event_url,
                                 senderName
                         ));
                 System.out.println("success to send mail to "+person.getName());
@@ -55,6 +53,7 @@ public class EventService {
     }
 
     public void sendAllAcceptedMail(EventEntity event, String url){
+        final String event_url = url+"/view/events/show?eventId="+event.getId();
         for (PersonEntity person : event.getPersons()) {
             try {
                 emailService.sendSimpleMail(person.getContact(),
@@ -65,7 +64,7 @@ public class EventService {
                         "To: " + event.getEndDate() +"\n"+
                         "Description: " + event.getDescription() +"\n\n"+
                         "If you are content with your planning, you can now finalize the event and create a fixed absence for everyone.\n" +
-                        url);
+                        event_url);
                 System.out.println("success to send mail to "+person.getName());
             }catch (Exception e){
                 System.out.println("Notification mail failed for "+person.getName());
@@ -74,6 +73,8 @@ public class EventService {
     }
 
     public void sendNewCommentMail(EventEntity event, String url, CommentEntity comment){
+        final String event_url = url+"/view/events/show?eventId="+event.getId();
+        final String reply_url = url+"/view/events/comments/editComment?eventId="+event.getId()+"&replyToId="+comment.getId();
         for (PersonEntity person : event.getPersons()) {
             if(person.equals(comment.getPerson())) continue;
             try {
@@ -86,13 +87,14 @@ public class EventService {
                                 "\t"+ comment.getReplyTo().getContent()
                                 : " has commented on your event:") + "\n" +
                                 "> "+ comment.getPerson().getName() + ", " + new SimpleDateFormat("dd.MM.yyyy HH:mm").format(comment.getCreated()) + "\n" +
-                                "\t"+ comment.getContent() + "\n\n" +
+                                "\t"+ comment.getContent() + "\n"+
+                                "Reply: " + reply_url + "\n\n" +
                                 "Event:\n" +
                                 "From: " + event.getStartDate() +"\n"+
                                 "To: " + event.getEndDate() +"\n"+
                                 "Description: " + event.getDescription() +"\n\n"+
                                 "Details can be found on your page inside the Vacation Planner:\n" +
-                                url +"\n" +
+                                event_url +"\n" +
                                 "Please check everything and accept the event if you want to participate." + "\n" +
                                 "This way planning can progress to the next steps as soon as possible.");
                 System.out.println("success to send mail to "+person.getName());
