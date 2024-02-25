@@ -14,6 +14,7 @@ import com.ph.service.FreeTimeService;
 import com.ph.service.HashService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -63,7 +64,8 @@ public class ViewController {
     @Autowired
     EmailService emailService;
 
-    private final String APP_BASE_URL = "http://vacationplannerv2-be-dev3.eba-pisehxks.us-east-1.elasticbeanstalk.com";
+    @Value("${mail.baseUrl}")
+    private String APP_BASE_URL;
 
     @GetMapping(value = "/persons")
     public ModelAndView  allPersonsView(){
